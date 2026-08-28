@@ -91,6 +91,10 @@ class AppConfig(BaseModel):
         (self.data_dir / "logs").mkdir(parents=True, exist_ok=True)
         (self.data_dir / "backups").mkdir(parents=True, exist_ok=True)
 
+    def save(self) -> None:
+        """Save this configuration instance to disk."""
+        save_config(self)
+
 
 _CONFIG_INSTANCE: Optional[AppConfig] = None
 

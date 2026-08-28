@@ -81,6 +81,14 @@ class ChatRequest(BaseModel):
     session_id: Optional[str] = None
     message: str
     mode: str = "chat"
+    model: Optional[str] = None
+
+
+class ConfigureProviderRequest(BaseModel):
+    provider: str = "openai_compatible"
+    api_key: Optional[str] = ""
+    base_url: Optional[str] = "https://api.openai.com/v1"
+    default_model: Optional[str] = "gpt-4o"
 
 
 class ExecuteGoalRequest(BaseModel):
@@ -159,6 +167,37 @@ async def reset_emergency_stop() -> Dict[str, Any]:
     return {"status": "RESET", "emergency_stop_active": False}
 
 
+@app.get("/api/models")
+def get_all_models() -> Dict[str, Any]:
+    """Retrieve all discovered local models and integrated external API models."""
+    models = model_gateway.list_all_models()
+    active_model = models[0]["id"] if models else "offline_local:kriti-offline-core-v1"
+    return {
+        "active_model": active_model,
+        "models": models,
+        "providers": {
+            p_name: {"available": p.is_available()}
+            for p_name, p in model_gateway._providers.items()
+        }
+    }
+
+
+@app.post("/api/models/providers")
+def configure_api_provider(req: ConfigureProviderRequest) -> Dict[str, Any]:
+    """Configure external API provider credentials and dynamically discover models."""
+    config.models.openai_api_key = req.api_key or ""
+    config.models.openai_base_url = req.base_url or "https://api.openai.com/v1"
+    config.models.openai_model = req.default_model or "gpt-4o"
+    config.save()
+    model_gateway.refresh_providers(config)
+    discovered = model_gateway.list_all_models()
+    return {
+        "success": True,
+        "models": discovered,
+        "message": f"Provider configured. Found {len(discovered)} available model(s)."
+    }
+
+
 @app.post("/api/chat")
 def handle_chat(req: ChatRequest) -> Dict[str, Any]:
     session_id = req.session_id
@@ -170,25 +209,31 @@ def handle_chat(req: ChatRequest) -> Dict[str, Any]:
     repo.add_message(session_id=session_id, role="user", content=req.message)
 
     # Route and generate response via ModelGateway
-    prov_name, model_name = model_router.route(task_type="general")
+    prov_name = None
+    model_name = req.model
+    if not model_name:
+        prov_name, model_name = model_router.route(task_type="general")
+
     history = repo.get_messages(session_id)
     chat_messages = [{"role": m["role"], "content": m["content"]} for m in history]
 
     model_resp = model_gateway.generate(messages=chat_messages, provider_name=prov_name, model=model_name)
+
+    actual_model = f"{model_name}" if model_name else f"{prov_name}/{model_resp.model}"
 
     # Record assistant message
     repo.add_message(
         session_id=session_id,
         role="assistant",
         content=model_resp.content,
-        model=f"{prov_name}/{model_name}",
+        model=actual_model,
         tool_calls=model_resp.tool_calls
     )
 
     return {
         "session_id": session_id,
         "content": model_resp.content,
-        "model": f"{prov_name}/{model_name}",
+        "model": actual_model,
         "tool_calls": model_resp.tool_calls,
         "latency_ms": model_resp.latency_ms
     }

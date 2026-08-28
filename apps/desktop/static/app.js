@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initSettings();
   initWebSocket();
   loadConfig();
+  loadAvailableModels();
 });
 
 // ==========================================================================
@@ -349,11 +350,101 @@ async function openPathOnWindows(pathStr) {
 }
 
 // ==========================================================================
-// Chat Mode
+// Chat Mode & Dynamic Model Discovery
 // ==========================================================================
+let availableModelsList = [];
+
+async function loadAvailableModels() {
+  const select = document.getElementById("chatModelSelect");
+  const badge = document.getElementById("chatModelBadge");
+  if (!select) return;
+
+  try {
+    const res = await fetch("/api/models");
+    const data = await res.json();
+    availableModelsList = data.models || [];
+
+    select.innerHTML = "";
+
+    const localModels = availableModelsList.filter(m => m.is_local);
+    const cloudModels = availableModelsList.filter(m => !m.is_local);
+
+    if (localModels.length > 0) {
+      const localGroup = document.createElement("optgroup");
+      localGroup.label = "Local Models (Downloaded)";
+      localModels.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m.id;
+        opt.innerText = `⚡ ${m.name} (${m.provider_display})`;
+        localGroup.appendChild(opt);
+      });
+      select.appendChild(localGroup);
+    }
+
+    if (cloudModels.length > 0) {
+      const cloudGroup = document.createElement("optgroup");
+      cloudGroup.label = "External API Models";
+      cloudModels.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m.id;
+        opt.innerText = `☁️ ${m.name} (${m.provider_display})`;
+        cloudGroup.appendChild(opt);
+      });
+      select.appendChild(cloudGroup);
+    }
+
+    // Set active selection
+    const saved = localStorage.getItem("kritiai_chat_model");
+    if (saved && availableModelsList.some(m => m.id === saved)) {
+      select.value = saved;
+    } else if (data.active_model) {
+      select.value = data.active_model;
+    }
+
+    updateChatModelBadge();
+  } catch (err) {
+    console.error("Error discovering models:", err);
+  }
+}
+
+function updateChatModelBadge() {
+  const select = document.getElementById("chatModelSelect");
+  const badge = document.getElementById("chatModelBadge");
+  if (!select || !badge) return;
+
+  const currentId = select.value;
+  const modelObj = availableModelsList.find(m => m.id === currentId);
+  if (modelObj && !modelObj.is_local) {
+    badge.innerText = "Cloud/API";
+    badge.className = "status-pill status-active";
+  } else {
+    badge.innerText = "Local";
+    badge.className = "status-pill status-done";
+  }
+}
+
 function initChatMode() {
   const input = document.getElementById("chatInput");
   const sendBtn = document.getElementById("chatSendBtn");
+  const select = document.getElementById("chatModelSelect");
+  const refreshBtn = document.getElementById("refreshModelsBtn");
+
+  if (select) {
+    select.addEventListener("change", () => {
+      localStorage.setItem("kritiai_chat_model", select.value);
+      updateChatModelBadge();
+      const modelObj = availableModelsList.find(m => m.id === select.value);
+      logTerminal("[MODEL]", `Active chat model switched to: ${modelObj ? modelObj.name : select.value}`);
+    });
+  }
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", async () => {
+      refreshBtn.innerText = "⏳";
+      await loadAvailableModels();
+      refreshBtn.innerText = "🔄";
+    });
+  }
 
   const send = async () => {
     const text = input.value.trim();
@@ -361,14 +452,16 @@ function initChatMode() {
     input.value = "";
     appendChatMessage("user", "You", text);
 
+    const chosenModel = select ? select.value : null;
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text })
+        body: JSON.stringify({ message: text, model: chosenModel })
       });
       const data = await res.json();
-      appendChatMessage("assistant", "KritiAI Assistant", data.content);
+      appendChatMessage("assistant", "KritiAI Assistant", data.content, data.model);
     } catch (e) {
       appendChatMessage("assistant", "KritiAI Assistant", `[Error: ${e.message}]`);
     }
@@ -380,12 +473,13 @@ function initChatMode() {
   });
 }
 
-function appendChatMessage(role, sender, text) {
+function appendChatMessage(role, sender, text, modelUsed = null) {
   const container = document.getElementById("chatMessages");
   const div = document.createElement("div");
   div.className = `chat-bubble ${role}`;
+  const modelTag = modelUsed ? `<span class="step-tag" style="margin-left: 8px; font-size: 10px;">${modelUsed}</span>` : "";
   div.innerHTML = `
-    <div class="chat-sender-label">${sender}</div>
+    <div class="chat-sender-label">${sender} ${modelTag}</div>
     <div>${text}</div>
   `;
   container.appendChild(div);
@@ -497,6 +591,13 @@ async function loadSettingsTab() {
     document.getElementById("permPowershell").checked = currentConfig.permissions.allow_powershell;
     document.getElementById("permAppControl").checked = currentConfig.permissions.allow_application_control;
     document.getElementById("permKeyboardMouse").checked = currentConfig.permissions.allow_keyboard_mouse;
+    
+    // API provider inputs
+    if (document.getElementById("settingApiBaseUrl")) {
+      document.getElementById("settingApiBaseUrl").value = currentConfig.models.openai_base_url || "https://api.openai.com/v1";
+      document.getElementById("settingApiKey").value = currentConfig.models.openai_api_key || "";
+      document.getElementById("settingApiDefaultModel").value = currentConfig.models.openai_model || "gpt-4o";
+    }
   }
 
   try {
@@ -509,6 +610,47 @@ async function loadSettingsTab() {
 }
 
 function initSettings() {
+  const testApiBtn = document.getElementById("testAndSaveApiBtn");
+  if (testApiBtn) {
+    testApiBtn.addEventListener("click", async () => {
+      const statusMsg = document.getElementById("apiStatusMessage");
+      testApiBtn.innerText = "Connecting...";
+      testApiBtn.disabled = true;
+      statusMsg.style.display = "block";
+      statusMsg.style.color = "var(--accent-cyan)";
+      statusMsg.innerText = "Querying API endpoint for available models...";
+
+      try {
+        const payload = {
+          base_url: document.getElementById("settingApiBaseUrl").value.trim(),
+          api_key: document.getElementById("settingApiKey").value.trim(),
+          default_model: document.getElementById("settingApiDefaultModel").value.trim()
+        };
+        const res = await fetch("/api/models/providers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        testApiBtn.innerText = "Connect & Discover Models";
+        testApiBtn.disabled = false;
+        if (data.success) {
+          statusMsg.style.color = "var(--accent-emerald)";
+          statusMsg.innerText = `✓ Connected! Discovered ${data.models.length} model(s). Models are now selectable in Chat Mode.`;
+          await loadAvailableModels();
+        } else {
+          statusMsg.style.color = "var(--accent-rose)";
+          statusMsg.innerText = `Failed: ${data.message || 'Could not connect.'}`;
+        }
+      } catch (e) {
+        testApiBtn.innerText = "Connect & Discover Models";
+        testApiBtn.disabled = false;
+        statusMsg.style.color = "var(--accent-rose)";
+        statusMsg.innerText = `Connection error: ${e.message}`;
+      }
+    });
+  }
+
   document.getElementById("saveSettingsBtn").addEventListener("click", async () => {
     const payload = {
       power_mode: document.getElementById("settingPowerMode").value,

@@ -717,6 +717,46 @@ body {
   border-bottom: 1px solid var(--border-subtle);
 }
 
+.chat-model-picker-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  transition: border-color 0.2s ease;
+}
+
+.chat-model-picker-group:focus-within {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+.chat-model-select {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  max-width: 260px;
+}
+
+.chat-model-select option,
+.chat-model-select optgroup {
+  background: #0f172a;
+  color: #f8fafc;
+  font-size: 13px;
+}
+
+.chat-model-select optgroup {
+  color: var(--accent-cyan);
+  font-weight: 700;
+}
+
 .chat-feed {
   flex: 1;
   overflow-y: auto;

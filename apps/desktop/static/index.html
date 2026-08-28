@@ -178,7 +178,14 @@ Watchdog Supervisor: ONLINE.
                 <h3 style="font-size: 16px; font-weight: 600;">KritiAI Chat Assistant</h3>
                 <span style="font-size: 12px; color: var(--text-muted);">Conversational assistance, concepts, code analysis, and brainstorming</span>
               </div>
-              <span class="step-tag">Local-First</span>
+              <div class="chat-model-picker-group">
+                <span style="font-size: 11px; color: var(--text-dim); font-weight: 700;">MODEL:</span>
+                <select id="chatModelSelect" class="chat-model-select">
+                  <option value="">Discovering models...</option>
+                </select>
+                <button id="refreshModelsBtn" class="power-btn" title="Refresh local and API models">🔄</button>
+                <span id="chatModelBadge" class="status-pill status-done">Local</span>
+              </div>
             </div>
             <div id="chatMessages" class="chat-feed">
               <div class="chat-bubble assistant">
@@ -313,6 +320,29 @@ Watchdog Supervisor: ONLINE.
               <label style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><input type="checkbox" id="settingPreferLocal" checked> Prefer Local Models & Offline Execution</label>
             </div>
             <button id="saveSettingsBtn" class="btn-execute">Save Settings</button>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title-row">
+              <span class="card-title"><span>☁️</span> External API Providers</span>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Integrate OpenAI, OpenRouter, Groq, or local LM Studio endpoints to chat with their models.</p>
+            <div style="margin-bottom: 12px;">
+              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Provider API Base URL</label>
+              <input type="text" id="settingApiBaseUrl" class="chat-input-field" placeholder="https://api.openai.com/v1">
+            </div>
+            <div style="margin-bottom: 12px;">
+              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">API Key</label>
+              <input type="password" id="settingApiKey" class="chat-input-field" placeholder="sk-...">
+            </div>
+            <div style="margin-bottom: 14px;">
+              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Default Model</label>
+              <input type="text" id="settingApiDefaultModel" class="chat-input-field" placeholder="gpt-4o">
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button id="testAndSaveApiBtn" class="btn-execute" style="flex: 1;">Connect & Discover Models</button>
+            </div>
+            <div id="apiStatusMessage" style="font-size: 12px; margin-top: 10px; color: var(--accent-cyan); display: none;"></div>
           </div>
 
           <div class="glass-card">
