@@ -1,4 +1,5 @@
-# KritiAI 🤖
+# KritiAI 🤖 Kernal_Level_RAG_and_IDE_Tooling_Interface_AI
+
 
 ## Your Personal AI Assistant & Execution Layer for Windows
 
