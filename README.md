@@ -1,4 +1,4 @@
-# Kernal_Level_RAG_and_IDE_Tooling_Interface_AI
+# Kernal Level RAG and IDE Tooling Interface AI
 
 # KritiAI 🤖
 
