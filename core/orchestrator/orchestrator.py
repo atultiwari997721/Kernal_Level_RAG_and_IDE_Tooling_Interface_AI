@@ -112,7 +112,10 @@ class AIOrchestrator:
             for step_idx, step in enumerate(plan.steps):
                 if stop_mgr.is_stopped:
                     self.task_engine.set_state(task_id, TaskState.CANCELLED, reason="Emergency STOP pressed during execution.")
-                    return {"success": False, "task_id": task_id, "status": TaskState.CANCELLED.value, "error": "Emergency STOP activated"}
+                # Ensure task state is EXECUTING for this step
+                curr_task = self.task_engine.get_task(task_id)
+                if curr_task and curr_task["status"] != TaskState.EXECUTING.value:
+                    self.task_engine.set_state(task_id, TaskState.EXECUTING)
 
                 step.status = "in_progress"
                 self.task_engine.repo.update_task(
@@ -239,15 +242,26 @@ class AIOrchestrator:
                 metadata={"task_id": task_id, "success": True}
             )
 
+            completion_payload = {
+                "event": "task_completed",
+                "task_id": task_id,
+                "result": final_report,
+                "intent_type": intent.intent_type,
+                "target": intent.target,
+                "parameters": intent.parameters
+            }
             if step_callback:
-                step_callback({"event": "task_completed", "task_id": task_id, "result": final_report})
+                step_callback(completion_payload)
 
             return {
                 "success": True,
                 "task_id": task_id,
                 "status": TaskState.COMPLETED.value,
                 "final_result": final_report,
-                "observations": observations
+                "observations": observations,
+                "intent_type": intent.intent_type,
+                "target": intent.target,
+                "parameters": intent.parameters
             }
 
         except Exception as ex:

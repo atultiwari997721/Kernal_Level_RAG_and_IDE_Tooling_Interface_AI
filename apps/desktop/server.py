@@ -248,6 +248,27 @@ async def cancel_task(task_id: str) -> Dict[str, Any]:
     return res
 
 
+class OpenPathRequest(BaseModel):
+    path: str
+
+
+@app.post("/api/open-path")
+def open_path(req: OpenPathRequest) -> Dict[str, Any]:
+    import os
+    import subprocess
+    target = os.path.abspath(req.path)
+    if os.path.exists(target):
+        try:
+            if os.name == "nt":
+                os.startfile(target)
+            else:
+                subprocess.Popen(["xdg-open", target])
+            return {"success": True, "path": target}
+        except Exception as ex:
+            return {"success": False, "error": str(ex)}
+    return {"success": False, "error": f"Path '{target}' not found."}
+
+
 @app.get("/api/audit")
 def list_audit_logs(task_id: Optional[str] = None) -> List[Dict[str, Any]]:
     return repo.get_audit_logs(task_id=task_id, limit=100)

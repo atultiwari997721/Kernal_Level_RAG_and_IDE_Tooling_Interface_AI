@@ -3,161 +3,166 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KritiAI — Windows Autonomous Execution Platform</title>
+  <title>KritiAI — Windows Autonomous AI Execution Platform</title>
   <link rel="stylesheet" href="/static/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI+Variable+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body class="theme-fluent-dark">
+<body>
   <div id="app">
-    <!-- Top Navigation Header -->
+    <!-- Top Glass Header -->
     <header class="app-header">
       <div class="header-left">
-        <div class="brand">
-          <div class="brand-logo">⚡</div>
-          <div class="brand-text">
-            <span class="brand-name">KritiAI</span>
-            <span class="brand-tag">v0.1 • Windows Native</span>
+        <div class="brand" title="KritiAI v0.1 — Local-First Windows Execution Platform">
+          <div class="brand-icon">⚡</div>
+          <div>
+            <div class="brand-title">KritiAI</div>
+            <div class="brand-badge">Windows Native • Autonomous</div>
           </div>
         </div>
 
-        <nav class="nav-tabs">
-          <button class="nav-tab active" data-tab="kritimode">
-            <span class="tab-icon">⚡</span>
+        <!-- Mode Toggle Segment -->
+        <div class="mode-toggle-group">
+          <button class="mode-toggle-btn active" data-tab="kritimode">
+            <span>⚡</span>
             <span>KritiMode</span>
           </button>
-          <button class="nav-tab" data-tab="chat">
-            <span class="tab-icon">💬</span>
+          <button class="mode-toggle-btn" data-tab="chat">
+            <span>💬</span>
             <span>Chat Mode</span>
           </button>
-          <button class="nav-tab" data-tab="tasks">
-            <span class="tab-icon">📋</span>
-            <span>Tasks</span>
-          </button>
-          <button class="nav-tab" data-tab="memory">
-            <span class="tab-icon">🧠</span>
-            <span>Memory</span>
-          </button>
-          <button class="nav-tab" data-tab="audit">
-            <span class="tab-icon">🛡️</span>
-            <span>Audit</span>
-          </button>
-          <button class="nav-tab" data-tab="settings">
-            <span class="tab-icon">⚙️</span>
-            <span>Settings</span>
-          </button>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+          <button class="nav-tab" data-tab="tasks">📋 Tasks</button>
+          <button class="nav-tab" data-tab="memory">🧠 Memory</button>
+          <button class="nav-tab" data-tab="audit">🛡️ Audit</button>
+          <button class="nav-tab" data-tab="settings">⚙️ Settings</button>
         </nav>
       </div>
 
       <div class="header-right">
-        <!-- Autonomy Power Mode Selector -->
-        <div class="power-mode-selector">
-          <span class="power-label">Autonomy:</span>
-          <div class="power-pill-group">
-            <button class="power-pill" data-mode="safe" title="Safe Mode: Approvals required for any state changes">Safe</button>
-            <button class="power-pill active" data-mode="autonomous" title="Autonomous Mode: Executes normal dev/file operations automatically with zero friction">Autonomous</button>
-            <button class="power-pill" data-mode="risk" title="Risk Mode: Maximum configured autonomy">Risk</button>
-          </div>
+        <!-- Power Mode Selector -->
+        <div class="power-selector-wrapper">
+          <span class="power-tag">AUTONOMY:</span>
+          <button class="power-btn" data-mode="safe" title="Safe Mode: Explicit approval required for computer modifications">Safe</button>
+          <button class="power-btn active" data-mode="autonomous" title="Autonomous Mode: Executes normal development and media actions automatically with zero friction">Autonomous</button>
+          <button class="power-btn" data-mode="risk" title="Risk Mode: Maximum configured autonomy">Risk</button>
         </div>
 
         <!-- Emergency STOP Button -->
-        <button id="emergencyStopBtn" class="btn-emergency-stop" title="Emergency STOP: Immediately halts all tasks and terminates active child processes">
-          <span class="stop-icon">🛑</span>
-          <span class="stop-text">EMERGENCY STOP</span>
+        <button id="emergencyStopBtn" class="btn-emergency" title="Emergency STOP: Immediately halts all tasks and terminates active child processes">
+          <span>🛑</span>
+          <span>EMERGENCY STOP</span>
         </button>
       </div>
     </header>
 
-    <!-- Main Content Area -->
+    <!-- Main Workspace -->
     <main class="app-main">
       <!-- 1. KRITIMODE EXECUTION DASHBOARD -->
       <section id="tab-kritimode" class="tab-content active">
-        <div class="kritimode-layout">
-          <!-- Left: Goal Input & Plan -->
-          <div class="col-left">
-            <div class="card goal-card">
-              <div class="card-header">
-                <h3>Autonomous Goal</h3>
-                <span class="badge badge-primary">Zero User Interaction</span>
+        <div class="kritimode-grid">
+          <!-- Left Column: Goal Input & Plan Pipeline -->
+          <div class="left-panel">
+            <div class="glass-card goal-card">
+              <div class="card-title-row">
+                <span class="card-title"><span>🎯</span> Autonomous Goal</span>
+                <span class="power-btn active" style="font-size: 10px; background: rgba(59, 130, 246, 0.25); color: #60a5fa;">Zero User Interaction</span>
               </div>
-              <div class="goal-input-wrap">
-                <textarea id="goalInput" placeholder="Give KritiAI an objective (e.g. 'Create a folder called Test', 'Inspect hardware', 'Open notepad')"></textarea>
-                <div class="goal-actions">
-                  <button id="executeGoalBtn" class="btn btn-primary">
-                    <span>⚡ Execute Autonomously</span>
-                  </button>
-                  <button id="quickTestGoalBtn" class="btn btn-secondary" title="Quick Milestone v0.1 Test">
-                    <span>Quick: "Create folder Test"</span>
-                  </button>
-                </div>
+              <div class="goal-textarea-wrapper">
+                <textarea id="goalInput" class="goal-textarea" placeholder="Give KritiAI any goal (e.g. 'Play Sita Ram song', 'Create calculator on Desktop', 'Inspect system')"></textarea>
+              </div>
+
+              <!-- Quick Suggestion Chips -->
+              <div class="quick-chips-row">
+                <button class="chip-btn" data-goal="Play Sita Ram song">🎵 Play Sita Ram song</button>
+                <button class="chip-btn" data-goal="Create calculator on Desktop">🧮 Create Calculator on Desktop</button>
+                <button class="chip-btn" data-goal="Create a folder called Test">📁 Create Folder 'Test'</button>
+                <button class="chip-btn" data-goal="Inspect hardware and system telemetry">💻 System Telemetry</button>
+              </div>
+
+              <div class="goal-action-bar">
+                <button id="executeGoalBtn" class="btn-execute">
+                  <span>⚡ Execute Autonomously</span>
+                </button>
               </div>
             </div>
 
-            <!-- Execution Plan Card -->
-            <div class="card plan-card">
-              <div class="card-header">
-                <h3>Execution Plan</h3>
-                <span id="planStepCount" class="badge">0 Steps</span>
+            <!-- Execution Plan Pipeline Card -->
+            <div class="glass-card plan-card">
+              <div class="card-title-row">
+                <span class="card-title"><span>📋</span> Execution Pipeline</span>
+                <span id="planStepCount" class="step-tag">0 Steps</span>
               </div>
-              <div id="planList" class="plan-list">
-                <div class="empty-state">No active execution plan. Enter a goal above to generate an autonomous plan.</div>
+              <div id="planList" class="pipeline-list">
+                <div class="empty-cell">Enter a goal above to generate and execute an autonomous plan.</div>
               </div>
             </div>
           </div>
 
-          <!-- Right: Execution Engine Status, Terminal & Verification -->
-          <div class="col-right">
-            <!-- Active State telemetry -->
-            <div class="telemetry-bar">
-              <div class="telemetry-item">
-                <span class="label">Task Status</span>
-                <span id="telemetryStatus" class="value status-badge badge-idle">IDLE</span>
+          <!-- Right Column: Telemetry, Terminal & Verified Outcome -->
+          <div class="right-panel">
+            <!-- Telemetry Ribbon -->
+            <div class="telemetry-ribbon">
+              <div class="ribbon-item">
+                <span class="ribbon-label">State</span>
+                <span id="telemetryStatus" class="status-pill status-idle">IDLE</span>
               </div>
-              <div class="telemetry-item">
-                <span class="label">Active Agent</span>
-                <span id="telemetryAgent" class="value">—</span>
+              <div class="ribbon-item">
+                <span class="ribbon-label">Active Agent</span>
+                <span id="telemetryAgent" class="ribbon-value">—</span>
               </div>
-              <div class="telemetry-item">
-                <span class="label">Active Model</span>
-                <span id="telemetryModel" class="value">offline_local</span>
+              <div class="ribbon-item">
+                <span class="ribbon-label">Active Model</span>
+                <span id="telemetryModel" class="ribbon-value">offline_local</span>
               </div>
-              <div class="telemetry-item">
-                <span class="label">Active Tool</span>
-                <span id="telemetryTool" class="value">—</span>
+              <div class="ribbon-item">
+                <span class="ribbon-label">Active Tool</span>
+                <span id="telemetryTool" class="ribbon-value">—</span>
               </div>
-              <div class="telemetry-controls">
-                <button id="pauseTaskBtn" class="btn-icon" title="Pause Task" disabled>⏸️</button>
-                <button id="resumeTaskBtn" class="btn-icon" title="Resume Task" disabled>▶️</button>
-                <button id="cancelTaskBtn" class="btn-icon btn-cancel" title="Cancel Task" disabled>⏹️</button>
+              <div class="ribbon-controls">
+                <button id="pauseTaskBtn" class="btn-ctrl" title="Pause Task" disabled>⏸️</button>
+                <button id="resumeTaskBtn" class="btn-ctrl" title="Resume Task" disabled>▶️</button>
+                <button id="cancelTaskBtn" class="btn-ctrl" title="Cancel Task" disabled>⏹️</button>
               </div>
             </div>
 
-            <!-- Real-time Live Terminal Output -->
-            <div class="card terminal-card">
-              <div class="card-header terminal-header">
-                <div class="terminal-title">
-                  <span class="terminal-dot red"></span>
-                  <span class="terminal-dot yellow"></span>
-                  <span class="terminal-dot green"></span>
-                  <span>Windows Execution Stream & Observations</span>
+            <!-- Live Windows Execution Console -->
+            <div class="glass-card terminal-card">
+              <div class="terminal-topbar">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div class="term-dots">
+                    <span class="tdot r"></span>
+                    <span class="tdot y"></span>
+                    <span class="tdot g"></span>
+                  </div>
+                  <span class="term-title">Windows Execution Stream & Observations</span>
                 </div>
-                <button id="clearTerminalBtn" class="btn-link">Clear</button>
+                <button id="clearTerminalBtn" class="power-btn">Clear</button>
               </div>
-              <pre id="terminalOutput" class="terminal-body">KritiAI Windows Execution Subsystem v0.1 ready.
-Local-first, deterministic policy engine active.
-Emergency Stop Watchdog: ONLINE.
+              <pre id="terminalOutput" class="term-body">KritiAI Windows Execution Subsystem v0.1 ready.
+Local-first, deterministic policy engine: ACTIVE.
+Watchdog Supervisor: ONLINE.
 [Ready for autonomous goal]</pre>
             </div>
 
-            <!-- Verification & Result Card -->
-            <div class="card result-card">
-              <div class="card-header">
-                <h3>Verification & Outcome</h3>
-                <span id="verificationBadge" class="badge badge-outline">Awaiting Execution</span>
+            <!-- Verification & Outcome Card -->
+            <div class="glass-card outcome-card">
+              <div class="card-title-row">
+                <span class="card-title"><span>✨</span> Verified Outcome</span>
+                <span id="verificationBadge" class="status-pill status-idle">Awaiting Task</span>
               </div>
-              <div id="resultOutput" class="result-body">
+              <div id="resultOutput" class="outcome-text">
                 Enter an objective to start autonomous execution and inspect verified real-world results.
+              </div>
+              <!-- Interactive Action Buttons -->
+              <div id="outcomeActionsRow" class="outcome-actions">
+                <button id="btnOpenFolder" class="btn-outcome-action" style="display: none;">📂 Open in File Explorer</button>
+                <button id="btnOpenBrowser" class="btn-outcome-action" style="display: none;">🌐 Open in Browser</button>
+                <button id="btnLaunchApp" class="btn-outcome-action" style="display: none;">▶️ Launch Application</button>
               </div>
             </div>
           </div>
@@ -166,177 +171,172 @@ Emergency Stop Watchdog: ONLINE.
 
       <!-- 2. CHAT MODE -->
       <section id="tab-chat" class="tab-content">
-        <div class="chat-layout">
-          <div class="chat-container">
-            <div class="chat-header">
-              <div class="chat-info">
-                <h3>KritiAI Conversational Mode</h3>
-                <span class="chat-subtitle">Local offline Q&A, brainstorming, and assistance</span>
+        <div class="chat-wrapper">
+          <div class="chat-inner">
+            <div class="chat-banner">
+              <div>
+                <h3 style="font-size: 16px; font-weight: 600;">KritiAI Chat Assistant</h3>
+                <span style="font-size: 12px; color: var(--text-muted);">Conversational assistance, concepts, code analysis, and brainstorming</span>
               </div>
-              <span id="chatModelBadge" class="badge badge-secondary">offline_local/kriti-offline-core-v1</span>
+              <span class="step-tag">Local-First</span>
             </div>
-            <div id="chatMessages" class="chat-messages">
-              <div class="message assistant">
-                <div class="message-sender">KritiAI Assistant</div>
-                <div class="message-content">Hello! I am KritiAI, your local-first Windows execution platform. You can ask me questions, discuss development projects, or switch to <strong>KritiMode</strong> to run real autonomous workflows on your PC.</div>
+            <div id="chatMessages" class="chat-feed">
+              <div class="chat-bubble assistant">
+                <div class="chat-sender-label">KritiAI Assistant</div>
+                <div>Hello! I am KritiAI, your local-first Windows execution platform. You can ask me questions, discuss development projects, or switch to <strong>KritiMode</strong> to run real autonomous workflows on your PC.</div>
               </div>
             </div>
-            <div class="chat-input-bar">
-              <input type="text" id="chatInput" placeholder="Ask a question or discuss an idea...">
-              <button id="chatSendBtn" class="btn btn-primary">Send</button>
+            <div class="chat-composer-bar">
+              <input type="text" id="chatInput" class="chat-input-field" placeholder="Ask a question or discuss an idea...">
+              <button id="chatSendBtn" class="btn-execute" style="flex: 0 0 100px;">Send</button>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- 3. TASKS -->
+      <!-- 3. TASKS TAB -->
       <section id="tab-tasks" class="tab-content">
-        <div class="card">
-          <div class="card-header">
-            <h3>Execution Tasks History</h3>
-            <button id="refreshTasksBtn" class="btn btn-secondary">Refresh</button>
+        <div class="table-card">
+          <div class="card-title-row">
+            <span class="card-title"><span>📋</span> Task History</span>
+            <button id="refreshTasksBtn" class="power-btn active" style="background: rgba(255,255,255,0.08);">Refresh</button>
           </div>
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Task ID</th>
-                  <th>Goal</th>
-                  <th>Status</th>
-                  <th>Power Mode</th>
-                  <th>Created</th>
-                </tr>
-              </thead>
-              <tbody id="tasksTableBody">
-                <tr><td colspan="5" class="empty-state">Loading tasks...</td></tr>
-              </tbody>
-            </table>
-          </div>
+          <table class="glass-table">
+            <thead>
+              <tr>
+                <th>Task ID</th>
+                <th>Goal</th>
+                <th>Status</th>
+                <th>Power Mode</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="tasksTableBody">
+              <tr><td colspan="5" class="empty-cell">Loading tasks...</td></tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
-      <!-- 4. MEMORY -->
+      <!-- 4. MEMORY TAB -->
       <section id="tab-memory" class="tab-content">
-        <div class="card">
-          <div class="card-header">
-            <h3>Local Multi-Tier Memory Store</h3>
-            <div>
-              <button id="clearMemoryBtn" class="btn btn-danger">Clear All Memory</button>
-              <button id="refreshMemoryBtn" class="btn btn-secondary">Refresh</button>
+        <div class="table-card">
+          <div class="card-title-row">
+            <span class="card-title"><span>🧠</span> Persistent Memory</span>
+            <div style="display: flex; gap: 8px;">
+              <button id="clearMemoryBtn" class="power-btn" style="color: var(--accent-rose);">Clear All Memory</button>
+              <button id="refreshMemoryBtn" class="power-btn active" style="background: rgba(255,255,255,0.08);">Refresh</button>
             </div>
           </div>
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Tier</th>
-                  <th>Key</th>
-                  <th>Content</th>
-                  <th>Created</th>
-                </tr>
-              </thead>
-              <tbody id="memoryTableBody">
-                <tr><td colspan="4" class="empty-state">Loading memory entries...</td></tr>
-              </tbody>
-            </table>
-          </div>
+          <table class="glass-table">
+            <thead>
+              <tr>
+                <th>Tier</th>
+                <th>Key</th>
+                <th>Content</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody id="memoryTableBody">
+              <tr><td colspan="4" class="empty-cell">Loading memory entries...</td></tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
-      <!-- 5. AUDIT LOGS -->
+      <!-- 5. AUDIT TAB -->
       <section id="tab-audit" class="tab-content">
-        <div class="card">
-          <div class="card-header">
-            <h3>Tamper-Evident Action Audit Trail</h3>
-            <button id="refreshAuditBtn" class="btn btn-secondary">Refresh</button>
+        <div class="table-card">
+          <div class="card-title-row">
+            <span class="card-title"><span>🛡️</span> Tamper-Evident Action Audit</span>
+            <button id="refreshAuditBtn" class="power-btn active" style="background: rgba(255,255,255,0.08);">Refresh</button>
           </div>
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>Tool</th>
-                  <th>Action</th>
-                  <th>Risk</th>
-                  <th>Power Mode</th>
-                  <th>Decision</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="auditTableBody">
-                <tr><td colspan="7" class="empty-state">Loading audit logs...</td></tr>
-              </tbody>
-            </table>
-          </div>
+          <table class="glass-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Tool</th>
+                <th>Action</th>
+                <th>Risk</th>
+                <th>Power Mode</th>
+                <th>Decision</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody">
+              <tr><td colspan="7" class="empty-cell">Loading audit logs...</td></tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
-      <!-- 6. SETTINGS -->
+      <!-- 6. SETTINGS TAB -->
       <section id="tab-settings" class="tab-content">
-        <div class="settings-grid">
-          <div class="card">
-            <h3>Autonomy & Power Policy</h3>
-            <div class="form-group">
-              <label>Default Power Mode</label>
-              <select id="settingPowerMode">
-                <option value="autonomous">Autonomous (Execute standard ops with zero friction)</option>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px;">
+          <div class="glass-card">
+            <div class="card-title-row">
+              <span class="card-title"><span>⚡</span> Autonomy Policy</span>
+            </div>
+            <div style="margin-bottom: 14px;">
+              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Default Power Mode</label>
+              <select id="settingPowerMode" class="chat-input-field" style="width: 100%;">
+                <option value="autonomous">Autonomous (Executes normal workflow with zero friction)</option>
                 <option value="safe">Safe (Prompt user before any side effects)</option>
                 <option value="risk">Risk (Maximum configured autonomy)</option>
               </select>
             </div>
-            <div class="form-group">
-              <label>Granular Permissions</label>
-              <div class="checkbox-group">
-                <label><input type="checkbox" id="permFilesystem" checked> Allow Filesystem</label>
-                <label><input type="checkbox" id="permTerminal" checked> Allow Terminal (CMD)</label>
-                <label><input type="checkbox" id="permPowershell" checked> Allow PowerShell</label>
-                <label><input type="checkbox" id="permAppControl" checked> Allow Application Control</label>
-                <label><input type="checkbox" id="permKeyboardMouse"> Allow Keyboard/Mouse</label>
+            <div style="margin-bottom: 14px;">
+              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 8px;">Granular Permissions</label>
+              <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="permFilesystem" checked> Allow Filesystem</label>
+                <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="permTerminal" checked> Allow Terminal (CMD)</label>
+                <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="permPowershell" checked> Allow PowerShell</label>
+                <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="permAppControl" checked> Allow Application Control</label>
+                <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="permKeyboardMouse"> Allow Keyboard/Mouse</label>
               </div>
             </div>
           </div>
 
-          <div class="card">
-            <h3>AI Model Configuration</h3>
-            <div class="form-group">
-              <label>General Model Override</label>
-              <input type="text" id="settingGeneralModel" placeholder="auto">
+          <div class="glass-card">
+            <div class="card-title-row">
+              <span class="card-title"><span>🤖</span> AI Models & Providers</span>
             </div>
-            <div class="form-group">
-              <label>Coding Model Override</label>
-              <input type="text" id="settingCodingModel" placeholder="auto">
+            <div style="margin-bottom: 14px;">
+              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">General Model Override</label>
+              <input type="text" id="settingGeneralModel" class="chat-input-field" placeholder="auto">
             </div>
-            <div class="form-group">
-              <label><input type="checkbox" id="settingPreferLocal" checked> Prefer Local Models & Offline Execution</label>
+            <div style="margin-bottom: 14px;">
+              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Coding Model Override</label>
+              <input type="text" id="settingCodingModel" class="chat-input-field" placeholder="auto">
             </div>
-            <button id="saveSettingsBtn" class="btn btn-primary">Save Settings</button>
+            <div style="margin-bottom: 14px;">
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><input type="checkbox" id="settingPreferLocal" checked> Prefer Local Models & Offline Execution</label>
+            </div>
+            <button id="saveSettingsBtn" class="btn-execute">Save Settings</button>
           </div>
 
-          <div class="card">
-            <h3>Windows System Telemetry</h3>
-            <div id="systemInfoContent" class="system-info-content">
-              Loading system information...
+          <div class="glass-card">
+            <div class="card-title-row">
+              <span class="card-title"><span>💻</span> System Hardware Telemetry</span>
             </div>
+            <pre id="systemInfoContent" class="term-body" style="height: 200px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">Loading system telemetry...</pre>
           </div>
         </div>
       </section>
     </main>
 
     <!-- User Approval Modal Dialog -->
-    <div id="approvalModal" class="modal-backdrop hidden">
-      <div class="modal-card">
-        <div class="modal-header">
-          <span class="modal-badge badge-warning">Approval Required</span>
-          <h3 id="approvalTitle">Permission Engine Request</h3>
+    <div id="approvalModal" class="modal-backdrop hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+      <div class="glass-card" style="width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border-color: var(--accent-amber);">
+        <div class="card-title-row">
+          <span class="card-title" style="color: var(--accent-amber);"><span>⚠️</span> Approval Required</span>
         </div>
-        <div class="modal-body">
-          <p id="approvalPrompt">KritiAI wants to execute an action that requires user confirmation.</p>
-          <pre id="approvalDetails" class="approval-details"></pre>
-        </div>
-        <div class="modal-actions">
-          <button id="approvalAllowOnceBtn" class="btn btn-primary">Allow Once</button>
-          <button id="approvalAlwaysAllowBtn" class="btn btn-secondary">Always Allow This Type</button>
-          <button id="approvalDenyBtn" class="btn btn-danger">Deny</button>
+        <p id="approvalPrompt" style="margin-bottom: 12px; font-size: 13.5px;"></p>
+        <pre id="approvalDetails" class="term-body" style="height: 120px; border-radius: 6px; border: 1px solid var(--border-subtle); margin-bottom: 16px;"></pre>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button id="approvalAllowOnceBtn" class="btn-execute" style="flex: none; padding: 6px 16px;">Allow Once</button>
+          <button id="approvalAlwaysAllowBtn" class="power-btn active" style="background: rgba(255,255,255,0.1); padding: 6px 14px;">Always Allow</button>
+          <button id="approvalDenyBtn" class="btn-emergency" style="padding: 6px 14px;">Deny</button>
         </div>
       </div>
     </div>

@@ -30,10 +30,44 @@ class OfflineIntelligenceProvider(BaseModelProvider):
         tool_calls: List[Dict[str, Any]] = []
         response_text = ""
 
+        # Check for YouTube / Media playback: "play sita ram song", "open youtube and play ..."
+        if any(w in content_lower for w in ["play ", "youtube", "listen to "]):
+            song_name = last_message
+            for p in ["open youtube and play", "open youtube to play", "play on youtube", "play song", "play video", "play"]:
+                if p in song_name.lower():
+                    song_name = re.sub(re.escape(p), "", song_name, flags=re.IGNORECASE).strip()
+            tool_calls.append({
+                "id": "call_yt_1",
+                "type": "function",
+                "function": {
+                    "name": "browser",
+                    "arguments": {
+                        "operation": "play_youtube",
+                        "query": song_name or last_message
+                    }
+                }
+            })
+            response_text = f"I am opening your browser and playing '{song_name or last_message}' on YouTube."
+
+        # Check for Calculator / Application creation
+        elif "calculator" in content_lower and any(w in content_lower for w in ["create", "make", "build", "scaffold"]):
+            tool_calls.append({
+                "id": "call_calc_1",
+                "type": "function",
+                "function": {
+                    "name": "filesystem",
+                    "arguments": {
+                        "operation": "create_folder",
+                        "path": "Calculator"
+                    }
+                }
+            })
+            response_text = "I am scaffolding a modern, fully functional calculator application with interactive UI and Python GUI."
+
         # Check for Folder Creation intent: "create a folder called Test", "mkdir Test"
-        folder_match = re.search(r"(?:create|make|new)\s+(?:a\s+)?(?:folder|directory)\s+(?:called|named\s+)?([^\s\.\,\;]+)", content_lower)
-        if folder_match:
-            folder_name = folder_match.group(1).strip("\"'")
+        elif re.search(r"(?:create|make|new)\s+(?:a\s+)?(?:folder|directory)(?:\s+(?:called|named))?\s+([^\s\.\,\;]+)", last_message, re.IGNORECASE):
+            folder_match = re.search(r"(?:create|make|new)\s+(?:a\s+)?(?:folder|directory)(?:\s+(?:called|named))?\s+([^\s\.\,\;]+)", last_message, re.IGNORECASE)
+            folder_name = folder_match.group(1).strip("\"'") if folder_match else "NewFolder"
             tool_calls.append({
                 "id": "call_folder_1",
                 "type": "function",

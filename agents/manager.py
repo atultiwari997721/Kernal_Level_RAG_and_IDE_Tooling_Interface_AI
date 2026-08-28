@@ -1,6 +1,7 @@
 """Agent Manager and Dispatcher for KritiAI."""
 from typing import Any, Dict, List, Optional
 from agents.base import BaseAgent
+from agents.browser import BrowserAgent
 from agents.coding import CodingAgent
 from agents.filesystem import FileSystemAgent
 from agents.verification import VerificationAgent
@@ -19,6 +20,7 @@ class AgentManager:
             FileSystemAgent(),
             WindowsAgent(),
             CodingAgent(),
+            BrowserAgent(),
             VerificationAgent(),
         ]
         for a in defaults:
@@ -36,7 +38,9 @@ class AgentManager:
     def select_agent_for_goal(self, goal: str) -> BaseAgent:
         """Heuristic and intent-based selection of the best agent."""
         g_lower = goal.lower()
-        if any(w in g_lower for w in ["folder", "dir", "file", "read", "write", "mkdir"]):
+        if any(w in g_lower for w in ["youtube", "play", "song", "video", "browser", "browse", "website", "url", "search online"]):
+            return self._agents.get("BrowserAgent", BrowserAgent())
+        elif any(w in g_lower for w in ["folder", "dir", "file", "read", "write", "mkdir", "calculator"]):
             return self._agents.get("FileSystemAgent", FileSystemAgent())
         elif any(w in g_lower for w in ["notepad", "app", "window", "hardware", "system info", "calc", "screen"]):
             return self._agents.get("WindowsAgent", WindowsAgent())
