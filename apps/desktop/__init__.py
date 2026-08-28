@@ -1,0 +1,1 @@
+"""KritiAI Desktop Application Package."""
