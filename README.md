@@ -1,4 +1,4 @@
-# Kernal_Level_RAG_and_IDE_Tooling_Interface_AI
+# Kernal Level RAG and IDE Tooling Interface AI
 
 # KritiAI 🤖
 
@@ -331,8 +331,87 @@ KritiAI's ultimate goal is simple:
 
 From planning a day to researching a topic, from creating software to executing complex workflows, KritiAI aims to become a **personal AI execution layer** between the user's ideas and the real-world actions required to accomplish them.
 
----
 
-## 📄 License
+  THE ARCHITECTURE 
 
-This project is currently private and does not yet have an open-source license.
+                           ┌───────────────────┐
+                         │       USER        │
+                         └─────────┬─────────┘
+                                   │
+                          ┌────────▼────────┐
+                          │   KRITIAI UI    │
+                          └────────┬────────┘
+                                   │
+                   ┌───────────────┴───────────────┐
+                   │                               │
+              CHAT MODE                       KRITIMODE
+                   │                               │
+                   └───────────────┬───────────────┘
+                                   │
+                          ┌────────▼─────────┐
+                          │   GOAL ENGINE    │
+                          └────────┬─────────┘
+                                   │
+                          ┌────────▼─────────┐
+                          │  MEMORY + RAG    │
+                          └────────┬─────────┘
+                                   │
+                          ┌────────▼─────────┐
+                          │  ORCHESTRATOR    │
+                          └────────┬─────────┘
+                                   │
+             ┌─────────────────────┼─────────────────────┐
+             ▼                     ▼                     ▼
+        ┌──────────┐         ┌──────────┐         ┌──────────┐
+        │ PLANNER  │         │  MODEL   │         │  AGENT   │
+        │          │         │  ROUTER  │         │ MANAGER  │
+        └────┬─────┘         └────┬─────┘         └────┬─────┘
+             └─────────────────────┼─────────────────────┘
+                                   ▼
+                          ┌─────────────────┐
+                          │ POLICY ENGINE   │
+                          │ Safe            │
+                          │ Autonomous      │
+                          │ Risk            │
+                          └────────┬────────┘
+                                   ▼
+                          ┌─────────────────┐
+                          │  TASK ENGINE    │
+                          └────────┬────────┘
+                                   ▼
+                          ┌─────────────────┐
+                          │  TOOL EXECUTOR  │
+                          └────────┬────────┘
+                                   │
+             ┌─────────────────────┼─────────────────────┐
+             ▼                     ▼                     ▼
+         WINDOWS                BROWSER               DEV
+             │                     │                     │
+             ▼                     ▼                     ▼
+        Applications          Websites              Code
+        Files                 UI                    Git
+        Keyboard              Vision                GitHub
+        Mouse                 Screenshots           Docker
+        Terminal              Forms                 Deploy
+             │                     │                     │
+             └─────────────────────┼─────────────────────┘
+                                   ▼
+                          ┌─────────────────┐
+                          │   OBSERVER      │
+                          └────────┬────────┘
+                                   ▼
+                          ┌─────────────────┐
+                          │   VERIFIER      │
+                          └────────┬────────┘
+                                   │
+                         ┌─────────┴─────────┐
+                         ▼                   ▼
+                      SUCCESS              ERROR
+                         │                   │
+                         ▼                   ▼
+                     COMPLETE             RECOVER
+                                             │
+                                             ▼
+                                          RETRY
+                                             │
+                                             └──────► EXECUTE
