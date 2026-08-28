@@ -40,7 +40,8 @@ class OllamaProvider(BaseModelProvider):
         max_tokens: int = 2048,
     ) -> ModelResponse:
         start_t = time.time()
-        chosen_model = model or "llama3.2:latest"
+        available_models = self.list_models()
+        chosen_model = model or (available_models[0] if available_models else "kriti-offline-core-v1")
         payload = {
             "model": chosen_model,
             "messages": messages,
@@ -62,10 +63,8 @@ class OllamaProvider(BaseModelProvider):
                     model=chosen_model,
                     latency_ms=latency
                 )
-        except Exception as ex:
-            latency = round((time.time() - start_t) * 1000, 2)
-            return ModelResponse(
-                content=f"[Ollama Error: {str(ex)}]",
-                model=chosen_model,
-                latency_ms=latency
-            )
+        except Exception:
+            # Graceful local offline fallback
+            from ai.providers.offline_provider import OfflineIntelligenceProvider
+            offline_prov = OfflineIntelligenceProvider()
+            return offline_prov.generate(messages=messages, model="offline_fallback", tools=tools)

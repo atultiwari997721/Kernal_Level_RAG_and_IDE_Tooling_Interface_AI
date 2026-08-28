@@ -1,5 +1,4 @@
-"""Database Repository for KritiAI entities."""
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from typing import Any, Dict, List, Optional
 import uuid
@@ -16,7 +15,7 @@ class Repository:
     # --- Sessions & Messages ---
     def create_session(self, title: str = "New Session", mode: str = "chat") -> Dict[str, Any]:
         session_id = str(uuid.uuid4())
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         with self.db.get_connection() as conn:
             conn.execute(
                 "INSERT INTO sessions (id, mode, title, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
@@ -40,7 +39,7 @@ class Repository:
         self, session_id: str, role: str, content: str, model: Optional[str] = None, tool_calls: Optional[Any] = None
     ) -> Dict[str, Any]:
         msg_id = str(uuid.uuid4())
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         tool_calls_json = json.dumps(tool_calls) if tool_calls else None
         with self.db.get_connection() as conn:
             conn.execute(
@@ -84,7 +83,7 @@ class Repository:
         power_mode: str = "autonomous"
     ) -> Dict[str, Any]:
         t_id = task_id or str(uuid.uuid4())
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         with self.db.get_connection() as conn:
             conn.execute(
                 """INSERT INTO tasks (
@@ -112,7 +111,7 @@ class Repository:
             return data
 
     def update_task(self, task_id: str, **kwargs: Any) -> Optional[Dict[str, Any]]:
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         kwargs["updated_at"] = now
         if "plan" in kwargs:
             kwargs["plan_json"] = json.dumps(kwargs.pop("plan"))
@@ -193,7 +192,7 @@ class Repository:
         self, tier: str, content: str, key: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         mem_id = str(uuid.uuid4())
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         meta_json = json.dumps(metadata) if metadata else None
         with self.db.get_connection() as conn:
             conn.execute(

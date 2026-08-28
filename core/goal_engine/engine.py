@@ -30,8 +30,9 @@ class GoalEngine:
 
         # 1. Folder Creation: "Create a folder called Test", "mkdir MyFolder"
         folder_match = re.search(
-            r"(?:create|make|new)\s+(?:a\s+)?(?:folder|directory)\s+(?:called|named\s+)?([^\s\.\,\;]+)",
-            g_lower
+            r"(?:create|make|new)\s+(?:a\s+)?(?:folder|directory)(?:\s+(?:called|named))?\s+([^\s\.\,\;]+)",
+            g_clean,
+            re.IGNORECASE
         )
         if folder_match:
             folder_name = folder_match.group(1).strip("\"'")
@@ -47,8 +48,9 @@ class GoalEngine:
 
         # 2. File Creation: "Create a file called script.py with content print('hello')"
         file_match = re.search(
-            r"(?:create|make|write)\s+(?:a\s+)?file\s+(?:called|named\s+)?([^\s\,]+)",
-            g_lower
+            r"(?:create|make|write)\s+(?:a\s+)?file(?:\s+(?:called|named))?\s+([^\s\,]+)",
+            g_clean,
+            re.IGNORECASE
         )
         if file_match:
             file_name = file_match.group(1).strip("\"'")

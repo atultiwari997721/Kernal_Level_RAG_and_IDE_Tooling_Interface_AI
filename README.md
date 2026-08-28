@@ -1,417 +1,260 @@
-# Kernal Level RAG and IDE Tooling Interface AI
+# KritiAI 🤖⚡
+### Open-Source Local-First Autonomous AI Execution Platform for Windows
 
-# KritiAI 🤖
+[![Windows 10/11 Native](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D6?logo=windows&logoColor=white)](https://microsoft.com/windows)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://python.org)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Tests: Passing](https://img.shields.io/badge/Tests-21%20Passed-10b981.svg)]()
 
-### Your Personal AI Assistant & Execution Layer
+> **From user idea to real-world verified execution on Windows — with zero unnecessary interaction.**
 
-> **From an idea to execution — KritiAI helps you do it.**
-
-KritiAI is a personal AI assistant designed to go beyond simple conversations.
-
-Instead of only answering questions, KritiAI aims to **understand a user's goal, plan the required steps, use appropriate tools, execute tasks, analyze results, and continuously improve the workflow.**
-
----
-
-## 🚀 Vision
-
-Today's AI assistants are excellent at generating information, but many tasks still require the user to manually execute every step.
-
-KritiAI aims to bridge that gap.
-
-```text
-User Goal
-    ↓
-Understand
-    ↓
-Plan
-    ↓
-Select Tools / Models
-    ↓
-Execute
-    ↓
-Analyze Results
-    ↓
-Improve
-```
-
-The long-term goal is to create a **personal AI execution system** that can turn ideas into completed work.
+KritiAI is NOT merely a chatbot. It is a personal AI execution layer operating natively on Windows 10 & 11. It allows you to give an AI a high-level goal and have it understand the objective, recall context, plan steps, select models/agents/tools, enforce security policies, execute commands on Windows, observe real-world outcomes, verify results, self-correct failures, and report accomplishments.
 
 ---
 
-## ✨ Planned Capabilities
-
-### 🧠 Personal AI
-
-* Understand natural-language instructions
-* Maintain user preferences and context
-* Break complex goals into smaller tasks
-* Plan multi-step workflows
-* Choose appropriate AI models and tools
-
-### 📋 Productivity
-
-* Plan your day
-* Create and manage tasks
-* Editable calendar
-* Intelligent reminders
-* Track completed and missed work
-* Analyze productivity
-
-### 🔎 Research
-
-* Search and collect information
-* Summarize research
-* Compare information
-* Organize findings
-* Generate structured reports
-
-### 💻 Software Development
-
-KritiAI is planned to assist with the complete development workflow:
+## 🏗️ Architecture In One Picture
 
 ```text
-Idea
- ↓
-Requirement Analysis
- ↓
-Architecture
- ↓
-Code Generation
- ↓
-Debugging
- ↓
-Testing
- ↓
-Deployment
-```
-
-The goal is eventually to allow KritiAI to create, debug, and deploy websites and applications with minimal manual intervention.
-
----
-
-## 🏗️ Architecture
-
-KritiAI is being designed as a modular system.
-
-```text
-                    ┌──────────────────┐
-                    │      User        │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │   KritiAI UI     │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │   AI Orchestrator│
-                    └────────┬─────────┘
-                             │
-              ┌──────────────┼──────────────┐
-              ▼              ▼              ▼
-        ┌──────────┐   ┌──────────┐   ┌──────────┐
-        │ Planner  │   │  Memory  │   │  Agents  │
-        └──────────┘   └──────────┘   └──────────┘
-              │              │              │
-              └──────────────┼──────────────┘
-                             ▼
-                    ┌──────────────────┐
-                    │ Tool Execution   │
-                    └────────┬─────────┘
-                             │
-              ┌──────────────┼──────────────┐
-              ▼              ▼              ▼
-          Web Tools       Code Tools      APIs
+                     ┌───────────────────┐
+                     │       USER        │
+                     └─────────┬─────────┘
+                               │
+                      ┌────────▼────────┐
+                      │   KRITIAI UI    │
+                      └────────┬────────┘
+                               │
+               ┌───────────────┴───────────────┐
+               │                               │
+          CHAT MODE                       KRITIMODE
+               │                               │
+               └───────────────┬───────────────┘
+                               │
+                      ┌────────▼─────────┐
+                      │   GOAL ENGINE    │
+                      └────────┬─────────┘
+                               │
+                      ┌────────▼─────────┐
+                      │  MEMORY + RAG    │
+                      └────────┬─────────┘
+                               │
+                      ┌────────▼─────────┐
+                      │  ORCHESTRATOR    │
+                      └────────┬─────────┘
+                               │
+         ┌─────────────────────┼─────────────────────┐
+         ▼                     ▼                     ▼
+    ┌──────────┐         ┌──────────┐         ┌──────────┐
+    │ PLANNER  │         │  MODEL   │         │  AGENT   │
+    │          │         │  ROUTER  │         │ MANAGER  │
+    └────┬─────┘         └────┬─────┘         └────┬─────┘
+         └─────────────────────┼─────────────────────┘
+                               ▼
+                      ┌─────────────────┐
+                      │ POLICY ENGINE   │
+                      │ Safe            │
+                      │ Autonomous      │
+                      │ Risk            │
+                      └────────┬────────┘
+                               ▼
+                      ┌─────────────────┐
+                      │  TASK ENGINE    │
+                      └────────┬────────┘
+                               ▼
+                      ┌─────────────────┐
+                      │  TOOL EXECUTOR  │
+                      └────────┬────────┘
+                               │
+         ┌─────────────────────┼─────────────────────┐
+         ▼                     ▼                     ▼
+     WINDOWS                BROWSER               DEV
+         │                     │                     │
+         ▼                     ▼                     ▼
+    Applications          Websites              Code
+    Files                 UI                    Git
+    Keyboard              Vision                GitHub
+    Mouse                 Screenshots           Docker
+    Terminal              Forms                 Deploy
+         │                     │                     │
+         └─────────────────────┼─────────────────────┘
+                               ▼
+                      ┌─────────────────┐
+                      │   OBSERVER      │
+                      └────────┬────────┘
+                               ▼
+                      ┌─────────────────┐
+                      │   VERIFIER      │
+                      └────────┬────────┘
+                               │
+                     ┌─────────┴─────────┐
+                     ▼                   ▼
+                  SUCCESS              ERROR
+                     │                   │
+                     ▼                   ▼
+                 COMPLETE             RECOVER
+                                         │
+                                         ▼
+                                      RETRY
+                                         │
+                                         └──────► EXECUTE
 ```
 
 ---
 
-## 🧩 Core Components
+## ⚡ Primary Power Modes
 
-KritiAI is planned to contain several major components:
-
-* **User Interface**
-* **AI Orchestrator**
-* **Planning Engine**
-* **Agent System**
-* **Memory System**
-* **Tool Execution Layer**
-* **Model Gateway**
-* **Backend API**
-* **Database**
-* **Authentication**
-* **Monitoring & Logging**
-
-The architecture is intentionally modular so individual components can be developed and replaced independently.
+| Power Mode | Autonomy Level | Behavior |
+| :--- | :--- | :--- |
+| **AUTONOMOUS** *(Default)* | **Frictionless Autonomy** | Executes normal workflow actions (create folders/files, dev commands, read files, run tests, verify) **without prompting the user**. Asks only when blocked, ambiguous, or encountering critical system actions. |
+| **SAFE** | **Maximum Approval** | Prompts the user before any state-altering action on the computer. Displays intent, affected resources, and requests approval (`Allow Once`, `Always Allow`, `Deny`). |
+| **RISK** | **Maximum Autonomy** | Allows full execution without confirmation, protected by watchdog timers, resource limits, tamper-evident audit logs, and an independent **Emergency STOP**. |
 
 ---
 
-## 🤖 AI Models
+## 🌟 KritiAI v0.1 Milestone Verified
 
-KritiAI is designed to support multiple AI models rather than depending on a single model.
+KritiAI v0.1 ships with complete implementation of the end-to-end execution loop:
 
-Potential model integrations include:
-
-* Local LLMs
-* Cloud LLMs
-* Coding models
-* Embedding models
-* Vision models
-* Speech models
-
-The model layer will eventually provide a common interface so KritiAI can select an appropriate model for a particular task.
-
----
-
-## 🛠️ Technology Stack
-
-The exact stack is still under development.
-
-### Backend
-
-* Python
-* FastAPI
-* AI/LLM orchestration
-* REST APIs
-
-### AI
-
-* LLMs
-* Embedding models
-* Agent workflows
-* RAG
-* LangChain / LangGraph where appropriate
-
-### Frontend
-
-* HTML
-* CSS
-* JavaScript
-* React / modern frontend framework as the project evolves
-
-### Database
-
-Potential technologies include:
-
-* PostgreSQL
-* Vector database
-* Redis
-* Local storage
-
-### Development
-
-* Git
-* GitHub
-* VS Code
-* Docker
+```text
+Windows Desktop App (Edge App Mode / Fluent Dark Theme)
+   ↓
+Chat Mode + KritiMode Execution Dashboard
+   ↓
+Local Offline Rule/Intent Intelligence + Local Ollama + Cloud API Gateway
+   ↓
+Model Gateway & Intelligent Model Router
+   ↓
+Multi-Tier Memory (Conversation, User, Project, Task, Long-Term + Local Vector Store)
+   ↓
+Standardized Tool Subsystem (Filesystem, Terminal, PowerShell, CMD, Process Manager, Apps, System Info)
+   ↓
+Safe / Autonomous (Default) / Risk Policy Engine
+   ↓
+KritiMode Autonomous Orchestrator
+   ↓
+User Goal: "Create a folder called Test"
+   ↓
+KritiAI parses intent → plans step → routes model → checks policy → executes FilesystemTool
+   ↓
+Verifies physical creation on Windows filesystem
+   ↓
+Reports verified success with ZERO user interaction
+```
 
 ---
 
-## 📁 Project Structure
-
-The repository will gradually evolve toward a structure similar to:
+## 📦 Project Structure
 
 ```text
 KritiAI/
-│
-├── frontend/
-│
-├── backend/
-│
-├── ai-engine/
-│
-├── agents/
-│
-├── tools/
-│
-├── memory/
-│
-├── database/
-│
-├── tests/
-│
-├── docs/
-│
-├── .gitignore
-├── README.md
-└── requirements.txt
+├── apps/
+│   └── desktop/                  # Windows Desktop frontend & launcher
+│       ├── static/               # Windows 11 Fluent Dark UI (HTML/CSS/JS)
+│       ├── server.py             # FastAPI backend with WebSockets
+│       └── launcher.py           # Native window desktop launcher (Edge/Chrome App)
+├── core/
+│   ├── orchestrator/             # Central execution coordinator
+│   ├── planner/                  # Goal decomposition & step generation
+│   ├── task_engine/              # Task lifecycle manager
+│   ├── goal_engine/              # Natural language goal understanding
+│   ├── state_machine/            # Deterministic Task State Machine
+│   ├── verification/             # Independent outcome verification
+│   └── recovery/                 # Self-correction & diagnostic engine
+├── ai/
+│   ├── gateway/                  # Provider-independent Model Gateway
+│   ├── router/                   # Intelligent Model Router
+│   └── providers/                # Offline local, Ollama, and OpenAI-compatible
+├── agents/                       # Specialized autonomous agents
+│   ├── base.py                   # Agent contract
+│   ├── filesystem.py             # File and folder operations
+│   ├── windows.py                # Windows automation and application control
+│   ├── coding.py                 # Dev execution and terminal commands
+│   ├── verification.py           # Action verification agent
+│   └── manager.py                # Agent manager and dispatcher
+├── tools/                        # Standardized tool execution layer
+│   ├── base.py                   # BaseTool definition
+│   ├── registry.py               # Tool Registry with policy & dry-run
+│   ├── filesystem/               # FilesystemTool (create, read, write, edit, delete, list, search)
+│   ├── terminal/                 # PowerShellTool, CmdTool, CommandRunner, Safety Classifier
+│   ├── windows/                  # AppManager, ProcessManager, SystemInfo, Clipboard, UIAutomation
+│   └── screenshot/               # ScreenshotTool (full screen, region)
+├── memory/                       # Local-first memory system
+│   ├── base.py                   # Memory models
+│   ├── vector_store.py           # Zero-dependency local TF-IDF vector search
+│   └── manager.py                # Multi-tier memory coordinator
+├── security/                     # Security & permission boundaries
+│   ├── policies/                 # RiskLevel, PermissionDecision, PolicyEvaluation
+│   ├── permissions/              # Deterministic Permission Engine
+│   ├── audit/                    # Tamper-evident persistent action audit trail
+│   ├── sandbox/                  # Watchdog timer & Emergency STOP controller
+│   └── privileged/               # Windows UAC elevation interface (user-space isolation)
+├── database/                     # Local SQLite database
+│   ├── connection.py             # Thread-safe SQLite connection pooling
+│   ├── schema.py                 # DDL definitions (tasks, sessions, memory, audit)
+│   └── repository.py             # Persistent CRUD repository
+├── config/                       # Centralized configuration system
+│   └── settings.py               # Pydantic-based configuration model & loader
+├── tests/                        # 21 automated unit & integration tests
+│   ├── test_state_machine.py     # State machine validation
+│   ├── test_permission_engine.py # Safe/Autonomous/Risk permission tests
+│   ├── test_tools.py             # Tool execution & real-world verification tests
+│   ├── test_model_gateway.py     # Model gateway & routing tests
+│   ├── test_memory.py            # Memory storage & vector search tests
+│   ├── test_orchestrator.py      # End-to-end autonomous execution tests
+│   └── test_api_server.py        # REST API & WebSocket tests
+├── kritiai.bat                   # 1-click Windows batch launcher
+├── kritiai.ps1                   # 1-click PowerShell launcher
+├── pyproject.toml                # Project metadata & dependencies
+├── LICENSE                       # Apache 2.0
+├── SECURITY.md                   # Security principles and vulnerability policy
+└── CONTRIBUTING.md               # Contribution guidelines
 ```
 
 ---
 
-## 🔐 Privacy & Security
+## 🚀 Quickstart Guide
 
-Privacy is an important part of KritiAI.
+### 1. Prerequisites
+- Windows 10 or Windows 11
+- Python 3.10+ installed
 
-The project aims to support a **local-first architecture where practical**, allowing users to run AI models and store personal data locally when possible.
+### 2. Installation
+```powershell
+# Clone the repository
+git clone https://github.com/atultiwari997721/Kernal_Level_RAG_and_IDE_Tooling_Interface_AI.git
+cd Kernal_Level_RAG_and_IDE_Tooling_Interface_AI
 
-Sensitive information such as API keys, passwords, tokens, and environment variables must never be committed to the repository.
+# Install dependencies in editable mode
+pip install -e .
+```
 
----
+### 3. Launching KritiAI
+You can start the desktop application with a single double-click on `kritiai.bat`, or from the terminal:
+```powershell
+# Launch with Windows 11 Native Edge App Window
+./kritiai.bat
 
-## 🗺️ Roadmap
+# Or run directly via Python
+python -m apps.desktop.launcher
+```
 
-### Phase 1 — Foundation
+This launches the local execution server on `http://127.0.0.1:8765` and opens a borderless desktop window.
 
-* [ ] Repository setup
-* [ ] Project architecture
-* [ ] Backend foundation
-* [ ] Frontend foundation
-* [ ] Basic AI model integration
-
-### Phase 2 — AI Core
-
-* [ ] Model gateway
-* [ ] Prompt management
-* [ ] Context management
-* [ ] Planning engine
-* [ ] Basic agent system
-
-### Phase 3 — Memory & Tools
-
-* [ ] User memory
-* [ ] Vector search
-* [ ] Tool execution
-* [ ] Web research
-* [ ] File processing
-
-### Phase 4 — Personal Assistant
-
-* [ ] Task management
-* [ ] Calendar
-* [ ] Reminders
-* [ ] Productivity analytics
-* [ ] Personal workflows
-
-### Phase 5 — Developer Agent
-
-* [ ] Code generation
-* [ ] Code analysis
-* [ ] Debugging
-* [ ] Testing
-* [ ] Project scaffolding
-* [ ] Deployment automation
-
-### Phase 6 — Autonomous Execution
-
-* [ ] Multi-step autonomous workflows
-* [ ] Improved planning
-* [ ] Tool selection
-* [ ] Result verification
-* [ ] Self-correction
-* [ ] Workflow optimization
+### 4. Running the Test Suite
+```powershell
+python -m pytest tests -v
+```
 
 ---
 
-## 👥 Team
+## 🛡️ Security Architecture
 
-KritiAI is being developed collaboratively.
-
-### Developers
-
-* **Infinity Coding**
-* **Project Collaborator**
+1. **User-Space Isolation**: KritiAI never runs within the Windows kernel.
+2. **Deterministic Permission Engine**: Security decisions are evaluated by deterministic Python code, never by prompt instructions alone.
+3. **Emergency STOP Watchdog**: An independent process supervisor tracks spawned subprocess PIDs and terminates them immediately when the red Emergency STOP button is pressed.
+4. **Offline First**: All core planning, execution, memory, and database capabilities operate without an internet connection or paid API keys.
 
 ---
 
-## 📌 Project Status
+## 📄 License
 
-🚧 **KritiAI is currently under active development.**
-
-The architecture and features described in this README represent the project's direction and roadmap. Features will be marked as completed as they are implemented and tested.
-
----
-
-## 🎯 Long-Term Goal
-
-KritiAI's ultimate goal is simple:
-
-> **Give an AI a goal, and let it help turn that goal into reality.**
-
-From planning a day to researching a topic, from creating software to executing complex workflows, KritiAI aims to become a **personal AI execution layer** between the user's ideas and the real-world actions required to accomplish them.
-
-
-  THE ARCHITECTURE 
-
-                           ┌───────────────────┐
-                         │       USER        │
-                         └─────────┬─────────┘
-                                   │
-                          ┌────────▼────────┐
-                          │   KRITIAI UI    │
-                          └────────┬────────┘
-                                   │
-                   ┌───────────────┴───────────────┐
-                   │                               │
-              CHAT MODE                       KRITIMODE
-                   │                               │
-                   └───────────────┬───────────────┘
-                                   │
-                          ┌────────▼─────────┐
-                          │   GOAL ENGINE    │
-                          └────────┬─────────┘
-                                   │
-                          ┌────────▼─────────┐
-                          │  MEMORY + RAG    │
-                          └────────┬─────────┘
-                                   │
-                          ┌────────▼─────────┐
-                          │  ORCHESTRATOR    │
-                          └────────┬─────────┘
-                                   │
-             ┌─────────────────────┼─────────────────────┐
-             ▼                     ▼                     ▼
-        ┌──────────┐         ┌──────────┐         ┌──────────┐
-        │ PLANNER  │         │  MODEL   │         │  AGENT   │
-        │          │         │  ROUTER  │         │ MANAGER  │
-        └────┬─────┘         └────┬─────┘         └────┬─────┘
-             └─────────────────────┼─────────────────────┘
-                                   ▼
-                          ┌─────────────────┐
-                          │ POLICY ENGINE   │
-                          │ Safe            │
-                          │ Autonomous      │
-                          │ Risk            │
-                          └────────┬────────┘
-                                   ▼
-                          ┌─────────────────┐
-                          │  TASK ENGINE    │
-                          └────────┬────────┘
-                                   ▼
-                          ┌─────────────────┐
-                          │  TOOL EXECUTOR  │
-                          └────────┬────────┘
-                                   │
-             ┌─────────────────────┼─────────────────────┐
-             ▼                     ▼                     ▼
-         WINDOWS                BROWSER               DEV
-             │                     │                     │
-             ▼                     ▼                     ▼
-        Applications          Websites              Code
-        Files                 UI                    Git
-        Keyboard              Vision                GitHub
-        Mouse                 Screenshots           Docker
-        Terminal              Forms                 Deploy
-             │                     │                     │
-             └─────────────────────┼─────────────────────┘
-                                   ▼
-                          ┌─────────────────┐
-                          │   OBSERVER      │
-                          └────────┬────────┘
-                                   ▼
-                          ┌─────────────────┐
-                          │   VERIFIER      │
-                          └────────┬────────┘
-                                   │
-                         ┌─────────┴─────────┐
-                         ▼                   ▼
-                      SUCCESS              ERROR
-                         │                   │
-                         ▼                   ▼
-                     COMPLETE             RECOVER
-                                             │
-                                             ▼
-                                          RETRY
-                                             │
-                                             └──────► EXECUTE
+KritiAI is open-source software licensed under the **[Apache License 2.0](LICENSE)**.

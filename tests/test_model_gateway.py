@@ -7,7 +7,8 @@ from config.settings import AppConfig, ModelSelection
 def test_offline_intelligence_provider():
     gateway = ModelGateway()
     resp = gateway.generate(
-        messages=[{"role": "user", "content": "Create a folder called TestProject"}]
+        messages=[{"role": "user", "content": "Create a folder called TestProject"}],
+        provider_name="offline_local"
     )
     assert resp.content != ""
     assert resp.tool_calls is not None
@@ -18,7 +19,7 @@ def test_offline_intelligence_provider():
 
 
 def test_model_router_offline_preference():
-    config = AppConfig()
+    config = AppConfig(models=ModelSelection(ollama_endpoint=""))
     gateway = ModelGateway(config)
     router = ModelRouter(gateway, config)
 
