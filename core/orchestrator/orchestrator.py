@@ -46,6 +46,7 @@ class AIOrchestrator:
         self.goal_engine = goal_engine or GoalEngine(str(self.config.workspace_dir))
         self.verification_engine = VerificationEngine()
         self.self_correction = SelfCorrectionEngine()
+        self._active_tasks: Dict[str, Dict[str, Any]] = {}
 
     def run_goal(
         self,
@@ -108,6 +109,14 @@ class AIOrchestrator:
             # 6. Execute Steps
             self.task_engine.set_state(task_id, TaskState.EXECUTING)
             observations: List[str] = []
+            self._active_tasks[task_id] = {
+                "plan": plan,
+                "intent": intent,
+                "observations": observations,
+                "goal": goal,
+                "active_power": active_power,
+                "current_step": 0
+            }
 
             for step_idx, step in enumerate(plan.steps):
                 if stop_mgr.is_stopped:
@@ -151,19 +160,23 @@ class AIOrchestrator:
                         tool_name=step.tool,
                         parameters=step.input_data,
                         task_id=task_id,
-                        agent_name=step.agent
+                        agent_name=step.agent,
+                        power_mode=active_power
                     )
 
                     # Check if permission engine requested approval
                     if tool_output.get("decision") == PermissionDecision.ASK_USER.value:
                         self.task_engine.set_state(task_id, TaskState.WAITING_FOR_APPROVAL, reason="Permission Engine requested user approval")
+                        self._active_tasks[task_id]["current_step"] = step_idx
                         return {
                             "success": False,
                             "task_id": task_id,
                             "status": TaskState.WAITING_FOR_APPROVAL.value,
                             "approval_required": True,
-                            "prompt": tool_output.get("prompt"),
-                            "step": step.model_dump()
+                            "prompt": tool_output.get("prompt") or f"Permission required to execute '{step.objective}' using tool '{step.tool}'.",
+                            "step": step.model_dump(),
+                            "tool_name": step.tool,
+                            "action": step.input_data.get("operation") or step.objective
                         }
 
                     # 7. Observe & Verify
@@ -273,3 +286,139 @@ class AIOrchestrator:
                 "status": TaskState.FAILED.value,
                 "error": str(ex)
             }
+
+    def resume_task_after_approval(
+        self,
+        task_id: str,
+        decision: str = "allow_once",
+        step_callback: Optional[Callable[[Dict[str, Any]], None]] = None
+    ) -> Dict[str, Any]:
+        """Resume task execution after user interaction with the Approval Modal."""
+        task_data = self._active_tasks.get(task_id)
+        if not task_data:
+            return {"success": False, "task_id": task_id, "error": f"Active task data for {task_id} not found."}
+
+        plan: ExecutionPlan = task_data["plan"]
+        intent: GoalIntent = task_data["intent"]
+        observations: List[str] = task_data["observations"]
+        goal: str = task_data["goal"]
+        start_step: int = task_data.get("current_step", 0)
+
+        if decision == "deny":
+            self.task_engine.cancel_task(task_id, reason="User denied action approval.")
+            if step_callback:
+                step_callback({"event": "task_cancelled", "task_id": task_id, "reason": "User denied action."})
+            return {"success": False, "task_id": task_id, "status": TaskState.CANCELLED.value, "error": "Action denied by user."}
+
+        if decision == "always_allow":
+            step = plan.steps[start_step]
+            action_name = step.input_data.get("operation") or step.objective
+            self.tool_registry.permission_engine.allow_action_permanently(step.tool, action_name)
+
+        stop_mgr = get_emergency_stop_manager()
+        self.task_engine.set_state(task_id, TaskState.EXECUTING)
+
+        try:
+            for step_idx in range(start_step, len(plan.steps)):
+                step = plan.steps[step_idx]
+                if stop_mgr.is_stopped:
+                    self.task_engine.set_state(task_id, TaskState.CANCELLED, reason="Emergency STOP pressed.")
+                    return {"success": False, "task_id": task_id, "status": TaskState.CANCELLED.value}
+
+                curr_task = self.task_engine.get_task(task_id)
+                if curr_task and curr_task["status"] != TaskState.EXECUTING.value:
+                    self.task_engine.set_state(task_id, TaskState.EXECUTING)
+
+                step.status = "in_progress"
+                self.task_engine.repo.update_task(task_id, current_step=step_idx, active_agent=step.agent, active_tool=step.tool)
+                if step_callback:
+                    step_callback({"event": "step_started", "task_id": task_id, "step": step.model_dump()})
+
+                # For the approved step, directly execute with bypass
+                if step_idx == start_step:
+                    tool = self.tool_registry.get_tool(step.tool)
+                    if not tool:
+                        step.status = "failed"
+                        self.task_engine.set_state(task_id, TaskState.FAILED)
+                        return {"success": False, "task_id": task_id, "error": f"Tool {step.tool} not registered."}
+                    tool_res = tool.execute(**step.input_data)
+                    tool_output = {
+                        "success": tool_res.success,
+                        "data": tool_res.data,
+                        "error": tool_res.error,
+                        "verification": tool_res.verification,
+                        "decision": PermissionDecision.ALLOW.value
+                    }
+                else:
+                    tool_output = self.tool_registry.execute_tool(
+                        tool_name=step.tool,
+                        parameters=step.input_data,
+                        task_id=task_id,
+                        agent_name=step.agent,
+                        power_mode=task_data.get("active_power")
+                    )
+                    if tool_output.get("decision") == PermissionDecision.ASK_USER.value:
+                        self.task_engine.set_state(task_id, TaskState.WAITING_FOR_APPROVAL)
+                        task_data["current_step"] = step_idx
+                        return {
+                            "success": False,
+                            "task_id": task_id,
+                            "status": TaskState.WAITING_FOR_APPROVAL.value,
+                            "approval_required": True,
+                            "prompt": tool_output.get("prompt") or f"Permission required for '{step.objective}'.",
+                            "step": step.model_dump(),
+                            "tool_name": step.tool,
+                            "action": step.input_data.get("operation") or step.objective
+                        }
+
+                # Observe & Verify
+                self.task_engine.set_state(task_id, TaskState.OBSERVING)
+                self.task_engine.set_state(task_id, TaskState.VERIFYING)
+                verif = self.verification_engine.verify_step(tool_output, step.verification_condition)
+                if verif.get("verified", False):
+                    step.status = "completed"
+                    step.output_data = tool_output.get("data")
+                    obs_msg = f"Step {step_idx + 1} ({step.objective}): Verified - {verif.get('reason')}"
+                    observations.append(obs_msg)
+                    if step_callback:
+                        step_callback({"event": "step_completed", "task_id": task_id, "step": step.model_dump(), "verification": verif})
+                else:
+                    step.status = "failed"
+                    self.task_engine.set_state(task_id, TaskState.FAILED)
+                    return {"success": False, "task_id": task_id, "error": f"Step verification failed: {verif.get('reason')}"}
+
+            # Task Completion
+            final_report = f"Successfully completed: '{goal}'.\n" + "\n".join(observations)
+            self.task_engine.repo.update_task(
+                task_id,
+                status=TaskState.COMPLETED.value,
+                final_result=final_report,
+                verification_status="verified",
+                observations="\n".join(observations)
+            )
+            self.task_engine.set_state(task_id, TaskState.COMPLETED)
+            completion_payload = {
+                "event": "task_completed",
+                "task_id": task_id,
+                "result": final_report,
+                "intent_type": intent.intent_type,
+                "target": intent.target,
+                "parameters": intent.parameters
+            }
+            if step_callback:
+                step_callback(completion_payload)
+
+            return {
+                "success": True,
+                "task_id": task_id,
+                "status": TaskState.COMPLETED.value,
+                "final_result": final_report,
+                "observations": observations,
+                "intent_type": intent.intent_type,
+                "target": intent.target,
+                "parameters": intent.parameters
+            }
+        except Exception as ex:
+            logger.exception(f"Error resuming task {task_id} after approval")
+            self.task_engine.set_state(task_id, TaskState.FAILED, reason=str(ex))
+            return {"success": False, "task_id": task_id, "status": TaskState.FAILED.value, "error": str(ex)}

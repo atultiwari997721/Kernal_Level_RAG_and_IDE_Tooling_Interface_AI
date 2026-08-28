@@ -3,7 +3,7 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from config.settings import AppConfig, get_config
+from config.settings import AppConfig, PowerMode, get_config
 from security.audit.logger import AuditLogger
 from security.permissions.engine import PermissionEngine
 from security.policies.models import PermissionDecision, RiskLevel
@@ -69,7 +69,8 @@ class ToolRegistry:
         parameters: Dict[str, Any],
         task_id: Optional[str] = None,
         agent_name: Optional[str] = None,
-        dry_run: bool = False
+        dry_run: bool = False,
+        power_mode: Optional[PowerMode] = None
     ) -> Dict[str, Any]:
         """Execute a tool with deterministic permission enforcement, dry-run support, and verification."""
         tool = self.get_tool(tool_name)
@@ -100,7 +101,8 @@ class ToolRegistry:
             action=str(action_name),
             risk_level=tool.risk_level,
             target=str(target) if target else None,
-            required_permission=tool.required_permission
+            required_permission=tool.required_permission,
+            power_mode_override=power_mode
         )
 
         if eval_result.decision == PermissionDecision.DENY:

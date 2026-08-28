@@ -293,6 +293,29 @@ async def cancel_task(task_id: str) -> Dict[str, Any]:
     return res
 
 
+class ApproveTaskRequest(BaseModel):
+    decision: str = "allow_once"  # allow_once, always_allow, deny
+    tool_name: Optional[str] = None
+    action: Optional[str] = None
+
+
+@app.post("/api/tasks/{task_id}/approve")
+async def approve_task_step(task_id: str, req: ApproveTaskRequest) -> Dict[str, Any]:
+    """Resume execution of a task after user interaction with the Approval Modal."""
+    loop = asyncio.get_event_loop()
+
+    def step_cb(payload: Dict[str, Any]) -> None:
+        asyncio.run_coroutine_threadsafe(ws_manager.broadcast(payload), loop)
+
+    result = await asyncio.to_thread(
+        orchestrator.resume_task_after_approval,
+        task_id=task_id,
+        decision=req.decision,
+        step_callback=step_cb
+    )
+    return result
+
+
 class OpenPathRequest(BaseModel):
     path: str
 

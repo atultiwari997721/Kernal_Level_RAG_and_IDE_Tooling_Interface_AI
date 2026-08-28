@@ -26,7 +26,7 @@ VALID_TRANSITIONS: Dict[TaskState, Set[TaskState]] = {
     TaskState.UNDERSTANDING: {TaskState.PLANNING, TaskState.WAITING_FOR_USER, TaskState.CANCELLED, TaskState.FAILED},
     TaskState.PLANNING: {TaskState.WAITING_FOR_APPROVAL, TaskState.EXECUTING, TaskState.CANCELLED, TaskState.FAILED},
     TaskState.WAITING_FOR_APPROVAL: {TaskState.EXECUTING, TaskState.CANCELLED, TaskState.WAITING_FOR_USER},
-    TaskState.EXECUTING: {TaskState.OBSERVING, TaskState.PAUSED, TaskState.CANCELLED, TaskState.FAILED},
+    TaskState.EXECUTING: {TaskState.OBSERVING, TaskState.WAITING_FOR_APPROVAL, TaskState.PAUSED, TaskState.CANCELLED, TaskState.FAILED},
     TaskState.OBSERVING: {TaskState.VERIFYING, TaskState.CANCELLED, TaskState.FAILED},
     TaskState.VERIFYING: {TaskState.EXECUTING, TaskState.OBSERVING, TaskState.RECOVERING, TaskState.COMPLETED, TaskState.CANCELLED, TaskState.FAILED},
     TaskState.RECOVERING: {TaskState.EXECUTING, TaskState.PLANNING, TaskState.WAITING_FOR_USER, TaskState.FAILED, TaskState.CANCELLED},

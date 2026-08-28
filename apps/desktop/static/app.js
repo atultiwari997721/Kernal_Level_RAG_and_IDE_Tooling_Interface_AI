@@ -690,21 +690,72 @@ function initSettings() {
 // ==========================================================================
 function showApprovalModal(data) {
   const modal = document.getElementById("approvalModal");
-  document.getElementById("approvalPrompt").innerText = data.prompt || "Confirmation required for computer action.";
-  document.getElementById("approvalDetails").innerText = JSON.stringify(data.step, null, 2);
+  if (!modal) return;
+
+  const promptText = data.prompt || (data.step ? `Permission required to execute: ${data.step.objective}` : "Approval required for computer action.");
+  document.getElementById("approvalPrompt").innerText = promptText;
+
+  const details = data.step ? {
+    objective: data.step.objective,
+    tool: data.tool_name || data.step.tool,
+    action: data.action || (data.step.input_data ? data.step.input_data.operation : undefined),
+    parameters: data.step.input_data
+  } : data;
+  document.getElementById("approvalDetails").innerText = JSON.stringify(details, null, 2);
+
+  modal.style.display = "flex";
   modal.classList.remove("hidden");
 
-  document.getElementById("approvalAllowOnceBtn").onclick = () => {
+  const taskId = data.task_id || currentTaskId;
+  const toolName = data.tool_name || (data.step ? data.step.tool : "");
+  const actionName = data.action || (data.step && data.step.input_data ? data.step.input_data.operation : "");
+
+  const handleDecision = async (decision) => {
+    modal.style.display = "none";
     modal.classList.add("hidden");
-    logTerminal("[USER]", "Approved action once.", "log-verif");
+    logTerminal("[USER]", `User submitted: ${decision.toUpperCase().replace("_", " ")}`);
+
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          decision: decision,
+          tool_name: toolName,
+          action: actionName
+        })
+      });
+      const result = await res.json();
+      lastTaskData = result;
+
+      if (result.success) {
+        setTelemetryStatus("COMPLETED", "status-done");
+        const badge = document.getElementById("verificationBadge");
+        if (badge) {
+          badge.innerText = "Verified Success";
+          badge.className = "status-pill status-done";
+        }
+        document.getElementById("resultOutput").innerText = result.final_result;
+        logTerminal("[SUCCESS]", result.final_result, "log-done");
+        enableTaskControls(false);
+        showOutcomeActionButtons(result);
+      } else if (decision === "deny") {
+        setTelemetryStatus("DENIED", "status-err");
+        logTerminal("[USER]", "Action denied by user.", "log-err");
+        enableTaskControls(false);
+      } else {
+        setTelemetryStatus("FAILED", "status-err");
+        logTerminal("[ERROR]", result.error || "Execution failed after approval.", "log-err");
+        enableTaskControls(false);
+      }
+    } catch (e) {
+      console.error("Approve error:", e);
+      logTerminal("[ERROR]", `Failed to submit approval: ${e.message}`, "log-err");
+      enableTaskControls(false);
+    }
   };
-  document.getElementById("approvalAlwaysAllowBtn").onclick = () => {
-    modal.classList.add("hidden");
-    logTerminal("[USER]", "Action marked permanently allowed.", "log-verif");
-  };
-  document.getElementById("approvalDenyBtn").onclick = () => {
-    modal.classList.add("hidden");
-    logTerminal("[USER]", "Action denied by user.", "log-err");
-    setTelemetryStatus("DENIED", "status-err");
-  };
+
+  document.getElementById("approvalAllowOnceBtn").onclick = () => handleDecision("allow_once");
+  document.getElementById("approvalAlwaysAllowBtn").onclick = () => handleDecision("always_allow");
+  document.getElementById("approvalDenyBtn").onclick = () => handleDecision("deny");
 }
