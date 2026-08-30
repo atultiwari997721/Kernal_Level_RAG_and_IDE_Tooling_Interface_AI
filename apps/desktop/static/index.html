@@ -9,367 +9,1100 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI+Variable+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body>
-  <div id="app">
-    <!-- Top Glass Header -->
-    <header class="app-header">
-      <div class="header-left">
-        <div class="brand" title="KritiAI v0.1 — Local-First Windows Execution Platform">
-          <div class="brand-icon">⚡</div>
-          <div>
-            <div class="brand-title">KritiAI</div>
-            <div class="brand-badge">Windows Native • Autonomous</div>
-          </div>
+<body class="dark-theme">
+  <div id="app" class="app-layout">
+    
+    <!-- =====================================================================
+         1. COMPACT FIXED-WIDTH SIDEBAR (SPEC SECTION 2)
+         ===================================================================== -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="brand-glyph">✦</span>
+          <span class="brand-title">KritiAI</span>
         </div>
-
-        <!-- Mode Toggle Segment -->
-        <div class="mode-toggle-group">
-          <button class="mode-toggle-btn active" data-tab="kritimode">
-            <span>⚡</span>
-            <span>KritiMode</span>
-          </button>
-          <button class="mode-toggle-btn" data-tab="chat">
-            <span>💬</span>
-            <span>Chat Mode</span>
-          </button>
-        </div>
-
-        <!-- Navigation Tabs -->
-        <nav class="nav-tabs">
-          <button class="nav-tab" data-tab="tasks">📋 Tasks</button>
-          <button class="nav-tab" data-tab="memory">🧠 Memory</button>
-          <button class="nav-tab" data-tab="audit">🛡️ Audit</button>
-          <button class="nav-tab" data-tab="settings">⚙️ Settings</button>
-        </nav>
       </div>
 
-      <div class="header-right">
-        <!-- Power Mode Selector -->
-        <div class="power-selector-wrapper">
-          <span class="power-tag">AUTONOMY:</span>
-          <button class="power-btn" data-mode="safe" title="Safe Mode: Explicit approval required for computer modifications">Safe</button>
-          <button class="power-btn active" data-mode="autonomous" title="Autonomous Mode: Executes normal development and media actions automatically with zero friction">Autonomous</button>
-          <button class="power-btn" data-mode="risk" title="Risk Mode: Maximum configured autonomy">Risk</button>
-        </div>
-
-        <!-- Emergency STOP Button -->
-        <button id="emergencyStopBtn" class="btn-emergency" title="Emergency STOP: Immediately halts all tasks and terminates active child processes">
-          <span>🛑</span>
-          <span>EMERGENCY STOP</span>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-page="home" title="Home Command Center">
+          <span class="nav-icon">◉</span>
+          <span class="nav-label">Home</span>
         </button>
+        <button class="nav-item" data-page="kritimode" title="General-Purpose Computer Execution">
+          <span class="nav-icon">⚡</span>
+          <span class="nav-label">KritiMode</span>
+        </button>
+        <button class="nav-item" data-page="supervision" title="AI Software Engineering IDE">
+          <span class="nav-icon">◈</span>
+          <span class="nav-label">KritiSuperVision</span>
+        </button>
+
+        <div class="nav-divider"></div>
+
+        <button class="nav-item" data-page="projects" title="Project Workspaces">
+          <span class="nav-icon">📁</span>
+          <span class="nav-label">Projects</span>
+        </button>
+        <button class="nav-item" data-page="tasks" title="Active & Background Tasks">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">Tasks</span>
+        </button>
+        <button class="nav-item" data-page="memory" title="Knowledge & Preferences Memory">
+          <span class="nav-icon">🧠</span>
+          <span class="nav-label">Memory</span>
+        </button>
+        <button class="nav-item" data-page="models" title="AI Models & Routing">
+          <span class="nav-icon">🤖</span>
+          <span class="nav-label">Models</span>
+        </button>
+
+        <div class="nav-divider"></div>
+
+        <button class="nav-item" data-page="settings" title="System Configuration">
+          <span class="nav-icon">⚙</span>
+          <span class="nav-label">Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="app-version-tag">v0.1.0-win</span>
       </div>
-    </header>
+    </aside>
 
-    <!-- Main Workspace -->
-    <main class="app-main">
-      <!-- 1. KRITIMODE EXECUTION DASHBOARD -->
-      <section id="tab-kritimode" class="tab-content active">
-        <div class="kritimode-grid">
-          <!-- Left Column: Goal Input & Plan Pipeline -->
-          <div class="left-panel">
-            <div class="glass-card goal-card">
-              <div class="card-title-row">
-                <span class="card-title"><span>🎯</span> Autonomous Goal</span>
-                <span class="power-btn active" style="font-size: 10px; background: rgba(59, 130, 246, 0.25); color: #60a5fa;">Zero User Interaction</span>
-              </div>
-              <div class="goal-textarea-wrapper">
-                <textarea id="goalInput" class="goal-textarea" placeholder="Give KritiAI any goal (e.g. 'Play Sita Ram song', 'Create calculator on Desktop', 'Inspect system')"></textarea>
-              </div>
+    <!-- =====================================================================
+         MAIN SHELL CONTAINER (TOP BAR + DYNAMIC WORKSPACE)
+         ===================================================================== -->
+    <div class="app-shell-main">
+      
+      <!-- GLOBAL TOP BAR (SPEC SECTION 3) -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <span class="topbar-crumb-root">✦ KritiAI</span>
+          <span class="topbar-crumb-sep">/</span>
+          <span id="topbarBreadcrumb" class="topbar-crumb-active">Home</span>
+        </div>
 
-              <!-- Quick Suggestion Chips -->
-              <div class="quick-chips-row">
-                <button class="chip-btn" data-goal="Play Sita Ram song">🎵 Play Sita Ram song</button>
-                <button class="chip-btn" data-goal="Create calculator on Desktop">🧮 Create Calculator on Desktop</button>
-                <button class="chip-btn" data-goal="Create a folder called Test">📁 Create Folder 'Test'</button>
-                <button class="chip-btn" data-goal="Inspect hardware and system telemetry">💻 System Telemetry</button>
-              </div>
+        <div class="topbar-right">
+          <!-- Power Mode Selector -->
+          <div class="power-mode-group">
+            <span class="power-group-label">Power:</span>
+            <button class="power-pill" data-mode="safe" title="Safe Mode: Asks before computer mutations">
+              <span class="mode-dot dot-safe"></span>
+              <span>Safe</span>
+            </button>
+            <button class="power-pill active" data-mode="autonomous" title="Autonomous Mode: Executes standard actions automatically">
+              <span class="mode-dot dot-auto"></span>
+              <span>Autonomous</span>
+            </button>
+            <button class="power-pill" data-mode="risk" title="Risk Mode: Maximum configured autonomy">
+              <span class="mode-dot dot-risk"></span>
+              <span>Risk</span>
+            </button>
+          </div>
 
-              <div class="goal-action-bar">
-                <button id="executeGoalBtn" class="btn-execute">
-                  <span>⚡ Execute Autonomously</span>
+          <!-- Notifications -->
+          <button id="btnTopNotifications" class="topbar-icon-btn" title="Notifications">
+            <span>🔔</span>
+            <span id="notifBadge" class="badge-count" style="display: none;">0</span>
+          </button>
+
+          <!-- Quick Settings -->
+          <button id="btnTopSettings" class="topbar-icon-btn" title="Settings">
+            <span>⚙</span>
+          </button>
+
+          <!-- Emergency STOP -->
+          <button id="emergencyStopBtn" class="btn-emergency-stop" title="Emergency STOP: Immediately halts all tasks">
+            <span>🛑</span>
+            <span>STOP</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- DYNAMIC CONTENT PAGES -->
+      <main class="app-content-area">
+
+        <!-- =================================================================
+             PAGE 1: HOME SCREEN — KRITIAI COMMAND CENTER (SPEC SECTION 4)
+             ================================================================= -->
+        <section id="page-home" class="view-page active">
+          <div class="home-command-center">
+            
+            <!-- Hero Greeting -->
+            <div class="home-hero">
+              <h1 id="homeGreeting" class="home-greeting">Good afternoon</h1>
+              <h2 class="home-subheading">What do you want to accomplish?</h2>
+            </div>
+
+            <!-- Main Command Input -->
+            <div class="home-command-box">
+              <div class="command-input-wrapper">
+                <input type="text" id="homeCommandInput" class="home-command-input" placeholder="Ask KritiAI to do anything..." />
+                <button id="homeVoiceBtn" class="btn-input-action" title="Voice Input">🎙</button>
+                <button id="homeSubmitBtn" class="btn-input-action primary" title="Execute Goal">➤</button>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="home-section">
+              <div class="section-header">Quick Actions</div>
+              <div class="quick-actions-grid">
+                <button class="quick-act-btn" data-action="build">
+                  <span class="act-icon">🔨</span>
+                  <span class="act-name">Build</span>
+                </button>
+                <button class="quick-act-btn" data-action="research">
+                  <span class="act-icon">🔎</span>
+                  <span class="act-name">Research</span>
+                </button>
+                <button class="quick-act-btn" data-action="control">
+                  <span class="act-icon">💻</span>
+                  <span class="act-name">Control PC</span>
+                </button>
+                <button class="quick-act-btn" data-action="open_project">
+                  <span class="act-icon">📁</span>
+                  <span class="act-name">Open Project</span>
+                </button>
+                <button class="quick-act-btn" data-action="browse">
+                  <span class="act-icon">🌐</span>
+                  <span class="act-name">Browse</span>
+                </button>
+                <button class="quick-act-btn" data-action="automate">
+                  <span class="act-icon">⚡</span>
+                  <span class="act-name">Automate</span>
                 </button>
               </div>
             </div>
 
-            <!-- Execution Plan Pipeline Card -->
-            <div class="glass-card plan-card">
-              <div class="card-title-row">
-                <span class="card-title"><span>📋</span> Execution Pipeline</span>
-                <span id="planStepCount" class="step-tag">0 Steps</span>
-              </div>
-              <div id="planList" class="pipeline-list">
-                <div class="empty-cell">Enter a goal above to generate and execute an autonomous plan.</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right Column: Telemetry, Terminal & Verified Outcome -->
-          <div class="right-panel">
-            <!-- Telemetry Ribbon -->
-            <div class="telemetry-ribbon">
-              <div class="ribbon-item">
-                <span class="ribbon-label">State</span>
-                <span id="telemetryStatus" class="status-pill status-idle">IDLE</span>
-              </div>
-              <div class="ribbon-item">
-                <span class="ribbon-label">Active Agent</span>
-                <span id="telemetryAgent" class="ribbon-value">—</span>
-              </div>
-              <div class="ribbon-item">
-                <span class="ribbon-label">Active Model</span>
-                <span id="telemetryModel" class="ribbon-value">offline_local</span>
-              </div>
-              <div class="ribbon-item">
-                <span class="ribbon-label">Active Tool</span>
-                <span id="telemetryTool" class="ribbon-value">—</span>
-              </div>
-              <div class="ribbon-controls">
-                <button id="pauseTaskBtn" class="btn-ctrl" title="Pause Task" disabled>⏸️</button>
-                <button id="resumeTaskBtn" class="btn-ctrl" title="Resume Task" disabled>▶️</button>
-                <button id="cancelTaskBtn" class="btn-ctrl" title="Cancel Task" disabled>⏹️</button>
-              </div>
-            </div>
-
-            <!-- Live Windows Execution Console -->
-            <div class="glass-card terminal-card">
-              <div class="terminal-topbar">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                  <div class="term-dots">
-                    <span class="tdot r"></span>
-                    <span class="tdot y"></span>
-                    <span class="tdot g"></span>
+            <!-- Recent Work -->
+            <div class="home-section">
+              <div class="section-header">Recent Work</div>
+              <div class="recent-work-grid" id="homeRecentWorkList">
+                <div class="project-card" data-proj="Shopping Website" data-path="K:\Kernal_Level_RAG_and_IDE_Tooling_Interface_AI">
+                  <div class="proj-card-top">
+                    <span class="proj-type-badge">Project</span>
+                    <span class="proj-status-badge done">Completed</span>
                   </div>
-                  <span class="term-title">Windows Execution Stream & Observations</span>
+                  <div class="proj-name">Shopping Website</div>
+                  <div class="proj-desc">E-commerce storefront with cart & live catalog</div>
                 </div>
-                <button id="clearTerminalBtn" class="power-btn">Clear</button>
+                <div class="project-card" data-proj="Authentication System" data-path="K:\Kernal_Level_RAG_and_IDE_Tooling_Interface_AI">
+                  <div class="proj-card-top">
+                    <span class="proj-type-badge">Project</span>
+                    <span class="proj-status-badge in-progress">In Progress</span>
+                  </div>
+                  <div class="proj-name">Authentication</div>
+                  <div class="proj-desc">JWT token auth & session verification handlers</div>
+                </div>
               </div>
-              <pre id="terminalOutput" class="term-body">KritiAI Windows Execution Subsystem v0.1 ready.
-Local-first, deterministic policy engine: ACTIVE.
-Watchdog Supervisor: ONLINE.
-[Ready for autonomous goal]</pre>
             </div>
 
-            <!-- Verification & Outcome Card -->
-            <div class="glass-card outcome-card">
-              <div class="card-title-row">
-                <span class="card-title"><span>✨</span> Verified Outcome</span>
-                <span id="verificationBadge" class="status-pill status-idle">Awaiting Task</span>
+            <!-- Active Tasks -->
+            <div class="home-section">
+              <div class="section-header">Active Tasks</div>
+              <div class="active-tasks-list" id="homeActiveTasksList">
+                <div class="task-summary-row">
+                  <span class="task-status-dot running"></span>
+                  <span class="task-summary-title">Windows Execution Engine</span>
+                  <span class="task-summary-time">Running</span>
+                </div>
+                <div class="task-summary-row">
+                  <span class="task-status-dot idle"></span>
+                  <span class="task-summary-title">Filesystem & Browser Watchdog</span>
+                  <span class="task-summary-time">Standby</span>
+                </div>
               </div>
-              <div id="resultOutput" class="outcome-text">
-                Enter an objective to start autonomous execution and inspect verified real-world results.
+            </div>
+
+          </div>
+        </section>
+
+        <!-- =================================================================
+             PAGE 2: KRITIMODE — GENERAL COMPUTER EXECUTION (SPEC SECTION 5-7)
+             ================================================================= -->
+        <section id="page-kritimode" class="view-page">
+          <div class="kritimode-screen-layout">
+            
+            <!-- 3-Column Execution Environment -->
+            <div class="kritimode-cols">
+              
+              <!-- LEFT: TASK / PLAN PANEL (SPEC SECTION 5) -->
+              <div class="km-col km-left-panel">
+                <div class="panel-box">
+                  <div class="panel-title">TASK</div>
+                  <div class="km-task-content">
+                    <div id="kmGoalDisplay" class="km-goal-text">No active task assigned.</div>
+                  </div>
+                </div>
+
+                <div class="panel-box flex-1">
+                  <div class="panel-title-row">
+                    <span class="panel-title">PLAN</span>
+                    <span id="kmPlanCount" class="badge-mini">0 Steps</span>
+                  </div>
+                  <div id="kmPlanStepsList" class="km-plan-list">
+                    <div class="plan-empty">Plan will appear once execution begins.</div>
+                  </div>
+                </div>
               </div>
-              <!-- Interactive Action Buttons -->
-              <div id="outcomeActionsRow" class="outcome-actions">
-                <button id="btnOpenFolder" class="btn-outcome-action" style="display: none;">📂 Open in File Explorer</button>
-                <button id="btnOpenBrowser" class="btn-outcome-action" style="display: none;">🌐 Open in Browser</button>
-                <button id="btnLaunchApp" class="btn-outcome-action" style="display: none;">▶️ Launch Application</button>
+
+              <!-- CENTER: LIVE COMPUTER VIEW (SPEC SECTION 6) -->
+              <div class="km-col km-center-panel">
+                <div class="live-view-header">
+                  <span class="live-view-title">🖥️ Live Computer View</span>
+                  <div class="live-view-indicators">
+                    <span id="kmLiveStateTag" class="status-tag idle">IDLE</span>
+                  </div>
+                </div>
+
+                <div class="live-view-viewport" id="kmLiveViewport">
+                  <div class="screen-container" id="kmScreenContainer">
+                    <div class="screen-placeholder">
+                      <div class="screen-icon">💻</div>
+                      <div class="screen-label">Ready for computer operations</div>
+                      <div class="screen-sublabel">Screen captures and browser activity will stream here live</div>
+                    </div>
+                    <iframe id="kmBrowserIframe" class="km-browser-view" style="display: none;" sandbox="allow-scripts allow-same-origin"></iframe>
+                  </div>
+                </div>
+              </div>
+
+              <!-- RIGHT: AI CONTROL PANEL (SPEC SECTION 7) -->
+              <div class="km-col km-right-panel">
+                <!-- Understanding Pipeline -->
+                <div class="panel-box">
+                  <div class="panel-title">UNDERSTANDING</div>
+                  <div class="understanding-list">
+                    <div id="undIntent" class="und-item"><span class="und-icon">○</span> Intent</div>
+                    <div id="undContext" class="und-item"><span class="und-icon">○</span> Context</div>
+                    <div id="undPlan" class="und-item"><span class="und-icon">○</span> Plan</div>
+                    <div id="undExec" class="und-item"><span class="und-icon">○</span> Execution</div>
+                    <div id="undVerify" class="und-item"><span class="und-icon">○</span> Verification</div>
+                  </div>
+                </div>
+
+                <!-- Current Action -->
+                <div class="panel-box">
+                  <div class="panel-title">CURRENT ACTION</div>
+                  <div id="kmCurrentAction" class="km-action-box">Awaiting objective</div>
+                </div>
+
+                <!-- Active Tool -->
+                <div class="panel-box">
+                  <div class="panel-title">ACTIVE TOOL</div>
+                  <div id="kmActiveTool" class="km-tool-box">—</div>
+                </div>
+
+                <!-- Model -->
+                <div class="panel-box">
+                  <div class="panel-title">MODEL</div>
+                  <div id="kmActiveModel" class="km-model-box">qwen2.5:7b (Local)</div>
+                </div>
+
+                <!-- Execution Controls (Spec Section 30) -->
+                <div class="panel-box">
+                  <div class="panel-title">CONTROLS</div>
+                  <div class="km-controls-row">
+                    <button id="kmPauseBtn" class="btn-km-ctrl" disabled>⏸ Pause</button>
+                    <button id="kmStopBtn" class="btn-km-ctrl stop" disabled>🛑 Stop</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Bottom Workspace: Tabs (TERMINAL | SCREEN | ACTIONS | LOGS | FILES) -->
+            <div class="kritimode-bottom-panel">
+              <div class="km-bottom-bar">
+                <div class="km-tab-strip">
+                  <button class="km-strip-tab active" data-kmtab="terminal">TERMINAL</button>
+                  <button class="km-strip-tab" data-kmtab="screen">SCREEN</button>
+                  <button class="km-strip-tab" data-kmtab="actions">ACTIONS</button>
+                  <button class="km-strip-tab" data-kmtab="logs">LOGS</button>
+                  <button class="km-strip-tab" data-kmtab="files">FILES</button>
+                </div>
+                <div class="km-undo-cluster">
+                  <button id="kmUndoBtn" class="btn-mini-tool" title="Undo Action (Ctrl+Z)" disabled>↶ Undo</button>
+                  <button id="kmRedoBtn" class="btn-mini-tool" title="Redo Action (Ctrl+Y)" disabled>↷ Redo</button>
+                </div>
+              </div>
+
+              <div class="km-bottom-content">
+                <div id="kmTabContent-terminal" class="km-tab-pane active">
+                  <pre id="kmTerminalLog" class="code-log">KritiMode General Execution Environment ready.</pre>
+                </div>
+                <div id="kmTabContent-screen" class="km-tab-pane">
+                  <div id="kmScreenLog" class="info-log">No screen events captured yet.</div>
+                </div>
+                <div id="kmTabContent-actions" class="km-tab-pane">
+                  <div id="kmActionsLog" class="info-log">No actions executed yet.</div>
+                </div>
+                <div id="kmTabContent-logs" class="km-tab-pane">
+                  <pre id="kmSystemLogs" class="code-log">Ready.</pre>
+                </div>
+                <div id="kmTabContent-files" class="km-tab-pane">
+                  <div id="kmFilesLog" class="info-log">No file operations recorded.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Command Input Bar -->
+            <div class="kritimode-input-bar">
+              <div class="command-input-wrapper">
+                <input type="text" id="kmCommandInput" class="home-command-input" placeholder="Ask KritiAI anything..." />
+                <button id="kmVoiceBtn" class="btn-input-action" title="Voice Input">🎙</button>
+                <button id="kmSubmitBtn" class="btn-input-action primary" title="Execute Goal">➤</button>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- =================================================================
+             PAGE 3: KRITISUPERVISION — AI SOFTWARE ENGINEERING IDE (SPEC SECTION 8-19)
+             ================================================================= -->
+        <section id="page-supervision" class="view-page">
+          <div class="supervision-ide-shell">
+            
+            <!-- SuperVision Top Bar (Spec Section 8) -->
+            <div class="sv-topbar">
+              <div class="sv-topbar-left">
+                <span class="sv-title-label">KritiAI / SuperVision</span>
+                <div class="sv-proj-box">
+                  <span class="folder-icon">📁</span>
+                  <input type="text" id="supervisionPathInput" class="sv-proj-input" placeholder="Select project directory or file..." />
+                  <button id="btnOpenFromPicker" class="btn-sv-tool" title="Open Folder or File from File Explorer Modal">📂 Open From...</button>
+                  <button id="btnSupervisionInspect" class="btn-sv-tool primary">🔍 Scan & Index</button>
+                </div>
+              </div>
+
+              <div class="sv-topbar-right">
+                <span id="svActivePowerTag" class="sv-power-badge">● Autonomous</span>
+                <button id="btnRunDevServer" class="btn-sv-run" title="Run Local Dev / Build Command">▶ Run</button>
+                <button id="btnSupervisionSettings" class="btn-sv-tool" title="Settings">⚙</button>
+              </div>
+            </div>
+
+            <!-- 3-Pane Professional Workspace -->
+            <div class="sv-main-panes">
+              
+              <!-- PANE 1: PROJECT EXPLORER (SPEC SECTION 9) -->
+              <div class="sv-pane sv-explorer-pane">
+                <div class="sv-pane-header">
+                  <div class="sv-pane-tabs">
+                    <button class="sv-pane-tab active" data-svtab="files">EXPLORER</button>
+                    <button class="sv-pane-tab" data-svtab="git">GIT</button>
+                    <button class="sv-pane-tab" data-svtab="symbols">SYMBOLS</button>
+                  </div>
+                </div>
+
+                <div class="sv-file-actions-bar">
+                  <button id="btnNewFile" class="btn-action-mini" title="New File">+ File</button>
+                  <button id="btnNewFolder" class="btn-action-mini" title="New Folder">+ Folder</button>
+                  <button id="btnRenameItem" class="btn-action-mini" title="Rename Selected">✏️ Rename</button>
+                  <button id="btnDeleteItem" class="btn-action-mini" title="Delete Selected">🗑️ Delete</button>
+                </div>
+
+                <div class="sv-explorer-content">
+                  <div id="sidebarFilesView" class="sv-view-pane active">
+                    <div id="ideFileTree" class="file-tree-container">
+                      <div class="empty-cell">Open a project directory above to inspect files.</div>
+                    </div>
+                  </div>
+                  <div id="sidebarGitView" class="sv-view-pane">
+                    <div id="ideGitStatus" class="git-status-container">
+                      <div class="empty-cell">No repository loaded.</div>
+                    </div>
+                  </div>
+                  <div id="sidebarSymbolsView" class="sv-view-pane">
+                    <div id="ideSymbolsList" class="symbols-container">
+                      <div class="empty-cell">No symbols indexed.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PANE 2: MULTI-TAB CODE EDITOR (SPEC SECTION 10, 11) -->
+              <div class="sv-pane sv-editor-pane">
+                <!-- Open File Tabs -->
+                <div class="sv-tabs-bar" id="ideTabsContainer">
+                  <div class="ide-tab active" data-file="">
+                    <span class="tab-title" id="ideActiveTabTitle">README.md</span>
+                    <span class="tab-close" id="ideActiveTabClose">✕</span>
+                  </div>
+                </div>
+
+                <!-- Editor Action Toolbar -->
+                <div class="sv-editor-toolbar">
+                  <div class="toolbar-left">
+                    <span id="ideActiveFilePill" class="file-badge">No file open</span>
+                    <span id="ideChangeTag" class="ai-change-tag" style="display: none;">🔵 AI Change</span>
+                  </div>
+                  <div class="toolbar-right">
+                    <button id="btnSaveActiveFile" class="btn-editor-tool" title="Save File (Ctrl+S)">💾 Save</button>
+                    <button id="btnFormatActiveFile" class="btn-editor-tool" title="Format Code">✨ Format</button>
+                    <button id="btnFindReplace" class="btn-editor-tool" title="Find / Replace (Ctrl+F)">🔍 Find</button>
+                    <button id="btnDiffSideBySide" class="btn-editor-tool" title="Side-by-Side Diff">⚖️ Side-by-Side</button>
+                    <button id="btnToggleDiffView" class="btn-editor-tool" title="Diff View">🔍 Diff</button>
+                  </div>
+                </div>
+
+                <!-- Conflict Protection Banner (Spec Section 18) -->
+                <div id="ideConflictBanner" class="sv-conflict-banner" style="display: none;">
+                  <div class="conflict-left">
+                    <span class="conflict-icon">⚠️</span>
+                    <span><strong>User changes detected.</strong> Another modification occurred since you opened this file.</span>
+                  </div>
+                  <div class="conflict-actions">
+                    <button id="btnConflictReview" class="btn-action-mini">Review Changes</button>
+                    <button id="btnConflictKeepMine" class="btn-action-mini">Keep My Version</button>
+                    <button id="btnConflictOverwrite" class="btn-action-mini">Overwrite</button>
+                  </div>
+                </div>
+
+                <!-- Find & Replace Bar -->
+                <div id="ideFindReplaceBar" class="sv-find-bar" style="display: none;">
+                  <input type="text" id="findInput" class="find-inp" placeholder="Find..." />
+                  <input type="text" id="replaceInput" class="find-inp" placeholder="Replace..." />
+                  <button id="btnFindNext" class="btn-action-mini">Find Next</button>
+                  <button id="btnReplaceOne" class="btn-action-mini">Replace</button>
+                  <button id="btnReplaceAll" class="btn-action-mini">Replace All</button>
+                  <button id="btnCloseFind" class="btn-action-mini">✕</button>
+                </div>
+
+                <!-- Text Area Editor with Line Numbers -->
+                <div class="sv-editor-body" id="ideEditorBody">
+                  <div id="ideLineNumbers" class="line-gutter">1</div>
+                  <textarea id="ideCodeEditor" class="code-textarea" spellcheck="false" placeholder="// Select a file from the explorer to view or edit code..."></textarea>
+                  <!-- Side-by-Side Diff Container -->
+                  <div id="ideDiffContainer" class="side-by-side-container" style="display: none;"></div>
+                </div>
+              </div>
+
+              <!-- PANE 3: KRITIAI SENIOR AGENT PANEL (SPEC SECTION 8) -->
+              <div class="sv-pane sv-agent-pane">
+                
+                <!-- GOAL Section -->
+                <div class="sv-agent-box">
+                  <div class="agent-box-title">GOAL</div>
+                  <div id="svGoalDisplay" class="sv-goal-text">Awaiting task or instruction...</div>
+                </div>
+
+                <!-- ANALYSIS Section -->
+                <div class="sv-agent-box">
+                  <div class="agent-box-title">ANALYSIS</div>
+                  <div class="analysis-list">
+                    <div id="svAnProject" class="an-item"><span class="check-icon">✓</span> Project analyzed</div>
+                    <div id="svAnDeps" class="an-item"><span class="check-icon">✓</span> Dependencies identified</div>
+                    <div id="svAnFiles" class="an-item"><span class="check-icon">✓</span> Relevant files found</div>
+                  </div>
+                </div>
+
+                <!-- IMPLEMENTATION PLAN Section -->
+                <div class="sv-agent-box flex-1">
+                  <div class="agent-box-title">IMPLEMENTATION PLAN</div>
+                  <!-- CAT ANIMATION -->
+                  <div id="computingCatSection" class="cat-running-container">
+                    <div id="catTrack" class="cat-track">
+                      <span id="catRunner" class="cat-runner">🐈</span>
+                      <span class="cat-meow" id="catMeow" style="display:none;">Meow!</span>
+                    </div>
+                    <div id="catBubble" class="cat-text">Processing task...</div>
+                  </div>
+                  <div id="svPlanList" class="sv-plan-steps">
+                    <div class="sv-step-item done">✓ Analyze</div>
+                    <div class="sv-step-item active">● Implement</div>
+                    <div class="sv-step-item pending">○ Test</div>
+                    <div class="sv-step-item pending">○ Verify</div>
+                  </div>
+                </div>
+
+                <!-- AI Explanation Card (Spec Section 11) -->
+                <div id="ideAiExplanationCard" class="sv-explanation-card" style="display: none;">
+                  <div class="exp-header">
+                    <span class="exp-title">🤖 AI Modification</span>
+                    <span id="explanationRiskBadge" class="badge-mini">LOW</span>
+                  </div>
+                  <div class="exp-row"><strong>Why:</strong> <span id="expWhyText">Refactoring</span></div>
+                  <div class="exp-row"><strong>What:</strong> <span id="expWhatText">Updated files</span></div>
+                  <div class="exp-row"><strong>Files:</strong> <span id="expFilesList" class="exp-tags"></span></div>
+                  <div class="exp-row"><strong>Result:</strong> <span id="expResultText">Verified</span></div>
+                  <div class="exp-actions">
+                    <button id="btnAcceptAiChanges" class="btn-action-mini success">✓ Accept Changes</button>
+                    <button id="btnRejectAiChanges" class="btn-action-mini danger">✕ Reject / Undo Task</button>
+                  </div>
+                </div>
+
+                <!-- Instruction Input Bar -->
+                <div class="sv-agent-input-box">
+                  <textarea id="supervisionPromptInput" class="sv-prompt-textarea" placeholder="Instruct Senior AI Developer (e.g. 'Add contact form modal', 'Implement dark mode', 'Run tests and fix errors')..."></textarea>
+                  <div class="sv-input-actions">
+                    <button id="btnSupervisionApply" class="btn-execute-primary">🚀 Generate & Apply</button>
+                    <button id="btnSupervisionRunVerify" class="btn-execute-secondary" title="Apply, run commands and verify in terminal">⚡ Run & Verify</button>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- Bottom Workspace: 5 Mandatory Panels (TERMINAL | PREVIEW | DIFF | TESTS | CHANGES) -->
+            <div class="sv-bottom-workspace">
+              <div class="sv-bottom-nav">
+                <div class="sv-bottom-tabs">
+                  <button class="sv-b-tab active" data-svbtab="terminal">TERMINAL</button>
+                  <button class="sv-b-tab" data-svbtab="preview">PREVIEW</button>
+                  <button class="sv-b-tab" data-svbtab="diff">DIFF</button>
+                  <button class="sv-b-tab" data-svbtab="tests">TESTS</button>
+                  <button class="sv-b-tab" data-svbtab="changes">CHANGES</button>
+                </div>
+                <div class="sv-bottom-actions">
+                  <button id="btnIdeUndo" class="btn-mini-tool" title="Undo Last Change (Ctrl+Z)" disabled>↶ Undo</button>
+                  <button id="btnIdeRedo" class="btn-mini-tool" title="Redo Action (Ctrl+Y)" disabled>↷ Redo</button>
+                  <button id="btnIdeSnapshot" class="btn-mini-tool" title="Take Instant Project Snapshot">📸 Snapshot</button>
+                </div>
+              </div>
+
+              <div class="sv-bottom-content">
+                <!-- 1. TERMINAL (Spec Section 19) -->
+                <div id="svTabContent-terminal" class="sv-tab-content active">
+                  <div class="terminal-shell">
+                    <pre id="ideTerminalOutput" class="term-display">PS K:\Kernal_Level_RAG_and_IDE_Tooling_Interface_AI> KritiSuperVision Integrated Terminal ready.</pre>
+                    <div class="terminal-input-line">
+                      <span class="ps-prompt">&gt;</span>
+                      <input type="text" id="ideTerminalInput" class="term-input-field" placeholder="Enter PowerShell command (e.g. npm test, python -m pytest)..." />
+                      <button id="btnRunTerminalCmd" class="btn-term-run">Enter</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. LIVE PREVIEW (Spec Section 12) -->
+                <div id="svTabContent-preview" class="sv-tab-content">
+                  <div class="preview-shell">
+                    <div class="preview-address-bar">
+                      <span id="idePreviewUrl" class="preview-url-text">http://localhost:8000/index.html</span>
+                      <div class="preview-actions">
+                        <button id="btnRefreshPreview" class="btn-action-mini">🔄 Refresh</button>
+                        <button id="btnOpenExternalBrowser" class="btn-action-mini">🌐 External</button>
+                      </div>
+                    </div>
+                    <iframe id="idePreviewIframe" class="preview-frame" sandbox="allow-scripts allow-same-origin"></iframe>
+                  </div>
+                </div>
+
+                <!-- 3. DIFF VIEW (Spec Section 13) -->
+                <div id="svTabContent-diff" class="sv-tab-content">
+                  <div class="diff-viewer-shell" id="ideBottomDiffList">
+                    <div class="empty-cell">No unified diffs recorded.</div>
+                  </div>
+                </div>
+
+                <!-- 4. TESTS -->
+                <div id="svTabContent-tests" class="sv-tab-content">
+                  <div class="tests-shell" id="ideTestsOutput">
+                    <div class="empty-cell">No automated test suite runs recorded yet. Use 'Run & Verify' or enter test commands.</div>
+                  </div>
+                </div>
+
+                <!-- 5. CHANGES & HISTORY (Spec Section 14, 15) -->
+                <div id="svTabContent-changes" class="sv-tab-content">
+                  <div class="changes-shell" id="ideHistoryTimeline">
+                    <div class="empty-cell">No change history recorded yet.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- =================================================================
+             PAGE 4: PROJECTS VIEW
+             ================================================================= -->
+        <section id="page-projects" class="view-page">
+          <div class="view-container">
+            <div class="page-header-row">
+              <h2 class="page-title">📁 Project Workspaces</h2>
+              <button id="btnOpenProjectBrowse" class="btn-action-primary">📂 Open Project...</button>
+            </div>
+            <div class="projects-list-grid" id="projectsDirectoryList">
+              <div class="project-card" data-path="K:\Kernal_Level_RAG_and_IDE_Tooling_Interface_AI">
+                <div class="proj-card-top">
+                  <span class="proj-type-badge">Active Workspace</span>
+                  <span class="proj-status-badge done">Indexed</span>
+                </div>
+                <div class="proj-name">Kernal_Level_RAG_and_IDE_Tooling_Interface_AI</div>
+                <div class="proj-desc">KritiAI Kernel Execution Engine & Supervision System</div>
               </div>
             </div>
           </div>
+        </section>
+
+        <!-- =================================================================
+             PAGE 5: TASKS VIEW
+             ================================================================= -->
+        <section id="page-tasks" class="view-page">
+          <div class="view-container">
+            <div class="page-header-row">
+              <h2 class="page-title">📋 Tasks & Background Jobs</h2>
+              <button id="refreshTasksBtn" class="btn-action-secondary">🔄 Refresh</button>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Task ID</th>
+                  <th>Goal / Description</th>
+                  <th>Agent</th>
+                  <th>Status</th>
+                  <th>Progress</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tasksTableBody">
+                <tr><td colspan="6" class="empty-cell">Loading tasks...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- =================================================================
+             PAGE 6: MEMORY VIEW
+             ================================================================= -->
+        <section id="page-memory" class="view-page">
+          <div class="view-container">
+            <div class="page-header-row">
+              <h2 class="page-title">🧠 Long-Term Memory & User Preferences</h2>
+              <button id="refreshMemoryBtn" class="btn-action-secondary">🔄 Refresh</button>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Key / Topic</th>
+                  <th>Category</th>
+                  <th>Value</th>
+                  <th>Updated</th>
+                </tr>
+              </thead>
+              <tbody id="memoryTableBody">
+                <tr><td colspan="4" class="empty-cell">Loading memory entries...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- =================================================================
+             PAGE 7: MODELS VIEW
+             ================================================================= -->
+        <section id="page-models" class="view-page">
+          <div class="view-container">
+            <div class="page-header-row">
+              <h2 class="page-title">🤖 AI Models & Discovery</h2>
+              <button id="refreshModelsPageBtn" class="btn-action-secondary">🔄 Rescan</button>
+            </div>
+            <div class="models-overview-grid">
+              <div class="settings-card">
+                <div class="card-heading">Local Models (Ollama / Local)</div>
+                <div id="modelsLocalList" class="models-list">Loading local models...</div>
+              </div>
+              <div class="settings-card">
+                <div class="card-heading">API Providers & External Models</div>
+                <div id="modelsApiList" class="models-list">Loading API providers...</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================================
+             PAGE 8: SETTINGS — 12 DEDICATED SUBSECTIONS (SPEC SECTION 20-24)
+             ================================================================= -->
+        <section id="page-settings" class="view-page">
+          <div class="settings-layout">
+            
+            <!-- Settings Sub-Navigation Sidebar (Spec Section 20) -->
+            <nav class="settings-nav">
+              <div class="settings-nav-title">SETTINGS</div>
+              <button class="s-nav-btn active" data-section="power">⚡ Power</button>
+              <button class="s-nav-btn" data-section="models">🤖 Models</button>
+              <button class="s-nav-btn" data-section="permissions">🔐 Permissions</button>
+              <button class="s-nav-btn" data-section="general">⚙ General</button>
+              <button class="s-nav-btn" data-section="memory">🧠 Memory</button>
+              <button class="s-nav-btn" data-section="tools">🛠 Tools</button>
+              <button class="s-nav-btn" data-section="computer">💻 Computer</button>
+              <button class="s-nav-btn" data-section="browser">🌐 Browser</button>
+              <button class="s-nav-btn" data-section="files">📁 Files</button>
+              <button class="s-nav-btn" data-section="updates">🔄 Updates</button>
+              <button class="s-nav-btn" data-section="apikeys">🔑 API Keys</button>
+              <button class="s-nav-btn" data-section="security">🛡 Security</button>
+            </nav>
+
+            <!-- Settings Content Panels -->
+            <div class="settings-content-area">
+              
+              <!-- 1. POWER & AUTONOMY (Spec Section 20, 22) -->
+              <div id="setSec-power" class="settings-section active">
+                <h3 class="sec-title">Power & Autonomy</h3>
+                <p class="sec-desc">Configure execution boundaries, automation thresholds, and computer access.</p>
+
+                <div class="settings-card">
+                  <div class="card-heading">Execution Mode</div>
+                  <div class="radio-options">
+                    <label class="radio-option">
+                      <input type="radio" name="settingsPowerMode" value="autonomous" checked />
+                      <div>
+                        <strong>● Autonomous (Default)</strong>
+                        <p>KritiAI executes normally and asks only for critical actions or when blocked.</p>
+                      </div>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="settingsPowerMode" value="safe" />
+                      <div>
+                        <strong>○ Safe</strong>
+                        <p>KritiAI asks before every action that modifies files, runs scripts, or controls applications.</p>
+                      </div>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="settingsPowerMode" value="risk" />
+                      <div>
+                        <strong>○ Risk</strong>
+                        <p>Maximum configured autonomy. High-performance execution with developer safety barriers.</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="settings-card">
+                  <div class="card-heading">Access Toggles</div>
+                  <div class="toggle-list">
+                    <div class="toggle-row">
+                      <span>Terminal Access</span>
+                      <input type="checkbox" id="setToggleTerminal" checked />
+                    </div>
+                    <div class="toggle-row">
+                      <span>Browser Control</span>
+                      <input type="checkbox" id="setToggleBrowser" checked />
+                    </div>
+                    <div class="toggle-row">
+                      <span>File Access</span>
+                      <input type="checkbox" id="setToggleFiles" checked />
+                    </div>
+                    <div class="toggle-row">
+                      <span>Mouse / Keyboard Control</span>
+                      <input type="checkbox" id="setToggleMouseKeyboard" checked />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. MODEL SETTINGS (Spec Section 21) -->
+              <div id="setSec-models" class="settings-section">
+                <h3 class="sec-title">Model Settings</h3>
+                <p class="sec-desc">Separate automatic model routing from user-selected models for coding and reasoning.</p>
+
+                <div class="settings-card">
+                  <div class="card-heading">Model Selection</div>
+                  <div class="toggle-row" style="margin-bottom: 14px;">
+                    <span>Automatic Model Selection</span>
+                    <input type="checkbox" id="setAutoModelSelection" checked />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="field-label">Coding Model</label>
+                    <select id="settingCodingModel" class="form-select">
+                      <option value="auto">Automatic (Optimal Routing)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="field-label">Reasoning Model</label>
+                    <select id="settingReasoningModel" class="form-select">
+                      <option value="auto">Automatic (Optimal Routing)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="field-label">Vision Model</label>
+                    <select id="settingVisionModel" class="form-select">
+                      <option value="auto">Automatic (Optimal Routing)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="field-label">Fast Model</label>
+                    <select id="settingFastModel" class="form-select">
+                      <option value="auto">Automatic (Optimal Routing)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. PERMISSIONS (Spec Section 23) -->
+              <div id="setSec-permissions" class="settings-section">
+                <h3 class="sec-title">Permissions</h3>
+                <p class="sec-desc">Granular controls for computer tools and sensitive system operations.</p>
+
+                <div class="settings-card">
+                  <div class="perm-table">
+                    <div class="perm-row"><span>Filesystem</span> <span class="perm-state ok">✓ Enabled</span></div>
+                    <div class="perm-row"><span>Terminal</span> <span class="perm-state ok">✓ Enabled</span></div>
+                    <div class="perm-row"><span>Browser</span> <span class="perm-state ok">✓ Enabled</span></div>
+                    <div class="perm-row"><span>Mouse</span> <span class="perm-state ok">✓ Enabled</span></div>
+                    <div class="perm-row"><span>Keyboard</span> <span class="perm-state ok">✓ Enabled</span></div>
+                    <div class="perm-row"><span>Screen</span> <span class="perm-state ok">✓ Enabled</span></div>
+                    <div class="perm-row"><span>Network</span> <span class="perm-state ok">✓ Enabled</span></div>
+                    <div class="perm-row"><span>Application Control</span> <span class="perm-state ok">✓ Enabled</span></div>
+                    <div class="perm-row"><span>Administrator Actions</span> <span class="perm-state warn">⚠ Ask</span></div>
+                    <div class="perm-row"><span>Delete Operations</span> <span class="perm-state warn">⚠ Ask</span></div>
+                    <div class="perm-row"><span>Software Installation</span> <span class="perm-state warn">⚠ Ask</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. GENERAL -->
+              <div id="setSec-general" class="settings-section">
+                <h3 class="sec-title">General Settings</h3>
+                <p class="sec-desc">Application defaults, theme preferences, and startup settings.</p>
+                <div class="settings-card">
+                  <div class="form-group">
+                    <label class="field-label">Theme</label>
+                    <select id="settingTheme" class="form-select">
+                      <option value="dark">Dark Theme (Default)</option>
+                      <option value="light">Light Theme</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="field-label">Default Workspace Directory</label>
+                    <input type="text" id="settingDefaultDir" class="form-input" value="K:\Kernal_Level_RAG_and_IDE_Tooling_Interface_AI" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- 5. MEMORY -->
+              <div id="setSec-memory" class="settings-section">
+                <h3 class="sec-title">Memory & Knowledge Store</h3>
+                <p class="sec-desc">Local project memories and user preferences store.</p>
+                <div class="settings-card">
+                  <button id="btnClearMemoryBtn" class="btn-action-danger">Clear Stored Session Memory</button>
+                </div>
+              </div>
+
+              <!-- 6. TOOLS -->
+              <div id="setSec-tools" class="settings-section">
+                <h3 class="sec-title">Registered System Tools</h3>
+                <p class="sec-desc">Available tools: Filesystem, PowerShell, Cmd, Browser, Application Manager, UI Automation.</p>
+                <div class="settings-card" id="toolsListContainer">Loading registered tools...</div>
+              </div>
+
+              <!-- 7. COMPUTER -->
+              <div id="setSec-computer" class="settings-section">
+                <h3 class="sec-title">Computer Automation</h3>
+                <p class="sec-desc">UI automation, accessibility APIs, and desktop integration.</p>
+                <div class="settings-card">
+                  <div class="toggle-row">
+                    <span>Direct Desktop UI Automation</span>
+                    <input type="checkbox" checked />
+                  </div>
+                </div>
+              </div>
+
+              <!-- 8. BROWSER -->
+              <div id="setSec-browser" class="settings-section">
+                <h3 class="sec-title">Browser Controller</h3>
+                <p class="sec-desc">Chromium automation and web research engine.</p>
+                <div class="settings-card">
+                  <div class="form-group">
+                    <label class="field-label">Headless Mode</label>
+                    <select class="form-select">
+                      <option value="false">Visible Window (Recommended)</option>
+                      <option value="true">Headless Background</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 9. FILES -->
+              <div id="setSec-files" class="settings-section">
+                <h3 class="sec-title">Filesystem Supervisor</h3>
+                <p class="sec-desc">Change management, snapshots, and conflict resolution.</p>
+                <div class="settings-card">
+                  <div class="toggle-row">
+                    <span>Automatic Pre-Task Project Snapshots</span>
+                    <input type="checkbox" checked />
+                  </div>
+                </div>
+              </div>
+
+              <!-- 10. UPDATES (Spec Section 24) -->
+              <div id="setSec-updates" class="settings-section">
+                <h3 class="sec-title">Application Updates</h3>
+                <p class="sec-desc">Independent update distribution and release channels.</p>
+
+                <div class="settings-card">
+                  <div style="margin-bottom: 12px;">
+                    <strong>Current Version:</strong> <span class="badge-mini">v0.1.0</span>
+                  </div>
+
+                  <div class="card-heading" style="margin-top: 14px;">Update Channel</div>
+                  <div class="radio-options">
+                    <label class="radio-option">
+                      <input type="radio" name="updateChannel" value="stable" checked />
+                      <span>● Stable</span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="updateChannel" value="beta" />
+                      <span>○ Beta</span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="updateChannel" value="nightly" />
+                      <span>○ Nightly</span>
+                    </label>
+                  </div>
+
+                  <div style="margin: 16px 0;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px;">
+                      <input type="checkbox" id="chkAutoUpdates" checked /> Automatically check for updates
+                    </label>
+                  </div>
+
+                  <button id="btnCheckUpdates" class="btn-action-primary">Check for Updates</button>
+                  <div id="updateStatusMsg" style="margin-top: 10px; font-size: 12px; color: var(--accent-cyan);"></div>
+                </div>
+              </div>
+
+              <!-- 11. API KEYS -->
+              <div id="setSec-apikeys" class="settings-section">
+                <h3 class="sec-title">API Keys & External Providers</h3>
+                <p class="sec-desc">Configure external LLM providers (OpenAI, OpenRouter, Groq, Anthropic, Custom).</p>
+
+                <div class="settings-card">
+                  <div class="form-group">
+                    <label class="field-label">Provider Base URL</label>
+                    <input type="text" id="settingApiBaseUrl" class="form-input" placeholder="https://api.openai.com/v1" />
+                  </div>
+                  <div class="form-group">
+                    <label class="field-label">API Key</label>
+                    <input type="password" id="settingApiKey" class="form-input" placeholder="sk-..." />
+                  </div>
+                  <div class="form-group">
+                    <label class="field-label">Default Model</label>
+                    <input type="text" id="settingApiDefaultModel" class="form-input" placeholder="gpt-4o" />
+                  </div>
+                  <button id="testAndSaveApiBtn" class="btn-action-primary">Connect & Save Key</button>
+                  <div id="apiStatusMessage" style="margin-top: 10px; font-size: 12px;"></div>
+                </div>
+              </div>
+
+              <!-- 12. SECURITY -->
+              <div id="setSec-security" class="settings-section">
+                <h3 class="sec-title">Security & Tamper-Evident Audit</h3>
+                <p class="sec-desc">Real-time audit log of all computer and file operations.</p>
+                <div class="settings-card">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Time</th>
+                        <th>Tool</th>
+                        <th>Action</th>
+                        <th>Decision</th>
+                      </tr>
+                    </thead>
+                    <tbody id="auditTableBody">
+                      <tr><td colspan="4" class="empty-cell">Loading audit trail...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- =====================================================================
+         MODALS & OVERLAYS
+         ===================================================================== -->
+
+    <!-- 1. USER APPROVAL MODAL -->
+    <div id="approvalModal" class="modal-backdrop hidden" style="display: none;">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span class="modal-title warn">⚠️ Approval Required</span>
         </div>
-      </section>
-
-      <!-- 2. CHAT MODE -->
-      <section id="tab-chat" class="tab-content">
-        <div class="chat-wrapper">
-          <div class="chat-inner">
-            <div class="chat-banner">
-              <div>
-                <h3 style="font-size: 16px; font-weight: 600;">KritiAI Chat Assistant</h3>
-                <span style="font-size: 12px; color: var(--text-muted);">Conversational assistance, concepts, code analysis, and brainstorming</span>
-              </div>
-              <div class="chat-model-picker-group">
-                <span style="font-size: 11px; color: var(--text-dim); font-weight: 700;">MODEL:</span>
-                <select id="chatModelSelect" class="chat-model-select">
-                  <option value="">Discovering models...</option>
-                </select>
-                <button id="refreshModelsBtn" class="power-btn" title="Refresh local and API models">🔄</button>
-                <span id="chatModelBadge" class="status-pill status-done">Local</span>
-              </div>
-            </div>
-            <div id="chatMessages" class="chat-feed">
-              <div class="chat-bubble assistant">
-                <div class="chat-sender-label">KritiAI Assistant</div>
-                <div>Hello! I am KritiAI, your local-first Windows execution platform. You can ask me questions, discuss development projects, or switch to <strong>KritiMode</strong> to run real autonomous workflows on your PC.</div>
-              </div>
-            </div>
-            <div class="chat-composer-bar">
-              <input type="text" id="chatInput" class="chat-input-field" placeholder="Ask a question or discuss an idea...">
-              <button id="chatSendBtn" class="btn-execute" style="flex: 0 0 100px;">Send</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 3. TASKS TAB -->
-      <section id="tab-tasks" class="tab-content">
-        <div class="table-card">
-          <div class="card-title-row">
-            <span class="card-title"><span>📋</span> Task History</span>
-            <button id="refreshTasksBtn" class="power-btn active" style="background: rgba(255,255,255,0.08);">Refresh</button>
-          </div>
-          <table class="glass-table">
-            <thead>
-              <tr>
-                <th>Task ID</th>
-                <th>Goal</th>
-                <th>Status</th>
-                <th>Power Mode</th>
-                <th>Time</th>
-              </tr>
-            </thead>
-            <tbody id="tasksTableBody">
-              <tr><td colspan="5" class="empty-cell">Loading tasks...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- 4. MEMORY TAB -->
-      <section id="tab-memory" class="tab-content">
-        <div class="table-card">
-          <div class="card-title-row">
-            <span class="card-title"><span>🧠</span> Persistent Memory</span>
-            <div style="display: flex; gap: 8px;">
-              <button id="clearMemoryBtn" class="power-btn" style="color: var(--accent-rose);">Clear All Memory</button>
-              <button id="refreshMemoryBtn" class="power-btn active" style="background: rgba(255,255,255,0.08);">Refresh</button>
-            </div>
-          </div>
-          <table class="glass-table">
-            <thead>
-              <tr>
-                <th>Tier</th>
-                <th>Key</th>
-                <th>Content</th>
-                <th>Created</th>
-              </tr>
-            </thead>
-            <tbody id="memoryTableBody">
-              <tr><td colspan="4" class="empty-cell">Loading memory entries...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- 5. AUDIT TAB -->
-      <section id="tab-audit" class="tab-content">
-        <div class="table-card">
-          <div class="card-title-row">
-            <span class="card-title"><span>🛡️</span> Tamper-Evident Action Audit</span>
-            <button id="refreshAuditBtn" class="power-btn active" style="background: rgba(255,255,255,0.08);">Refresh</button>
-          </div>
-          <table class="glass-table">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Tool</th>
-                <th>Action</th>
-                <th>Risk</th>
-                <th>Power Mode</th>
-                <th>Decision</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="auditTableBody">
-              <tr><td colspan="7" class="empty-cell">Loading audit logs...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- 6. SETTINGS TAB -->
-      <section id="tab-settings" class="tab-content">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px;">
-          <div class="glass-card">
-            <div class="card-title-row">
-              <span class="card-title"><span>⚡</span> Autonomy Policy</span>
-            </div>
-            <div style="margin-bottom: 14px;">
-              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Default Power Mode</label>
-              <select id="settingPowerMode" class="chat-input-field" style="width: 100%;">
-                <option value="autonomous">Autonomous (Executes normal workflow with zero friction)</option>
-                <option value="safe">Safe (Prompt user before any side effects)</option>
-                <option value="risk">Risk (Maximum configured autonomy)</option>
-              </select>
-            </div>
-            <div style="margin-bottom: 14px;">
-              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 8px;">Granular Permissions</label>
-              <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
-                <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="permFilesystem" checked> Allow Filesystem</label>
-                <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="permTerminal" checked> Allow Terminal (CMD)</label>
-                <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="permPowershell" checked> Allow PowerShell</label>
-                <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="permAppControl" checked> Allow Application Control</label>
-                <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="permKeyboardMouse"> Allow Keyboard/Mouse</label>
-              </div>
-            </div>
-          </div>
-
-          <div class="glass-card">
-            <div class="card-title-row">
-              <span class="card-title"><span>🤖</span> AI Models & Providers</span>
-            </div>
-            <div style="margin-bottom: 14px;">
-              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">General Model Override</label>
-              <input type="text" id="settingGeneralModel" class="chat-input-field" placeholder="auto">
-            </div>
-            <div style="margin-bottom: 14px;">
-              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Coding Model Override</label>
-              <input type="text" id="settingCodingModel" class="chat-input-field" placeholder="auto">
-            </div>
-            <div style="margin-bottom: 14px;">
-              <label style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><input type="checkbox" id="settingPreferLocal" checked> Prefer Local Models & Offline Execution</label>
-            </div>
-            <button id="saveSettingsBtn" class="btn-execute">Save Settings</button>
-          </div>
-
-          <div class="glass-card">
-            <div class="card-title-row">
-              <span class="card-title"><span>☁️</span> External API Providers</span>
-            </div>
-            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Integrate OpenAI, OpenRouter, Groq, or local LM Studio endpoints to chat with their models.</p>
-            <div style="margin-bottom: 12px;">
-              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Provider API Base URL</label>
-              <input type="text" id="settingApiBaseUrl" class="chat-input-field" placeholder="https://api.openai.com/v1">
-            </div>
-            <div style="margin-bottom: 12px;">
-              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">API Key</label>
-              <input type="password" id="settingApiKey" class="chat-input-field" placeholder="sk-...">
-            </div>
-            <div style="margin-bottom: 14px;">
-              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Default Model</label>
-              <input type="text" id="settingApiDefaultModel" class="chat-input-field" placeholder="gpt-4o">
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button id="testAndSaveApiBtn" class="btn-execute" style="flex: 1;">Connect & Discover Models</button>
-            </div>
-            <div id="apiStatusMessage" style="font-size: 12px; margin-top: 10px; color: var(--accent-cyan); display: none;"></div>
-          </div>
-
-          <div class="glass-card">
-            <div class="card-title-row">
-              <span class="card-title"><span>💻</span> System Hardware Telemetry</span>
-            </div>
-            <pre id="systemInfoContent" class="term-body" style="height: 200px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">Loading system telemetry...</pre>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <!-- User Approval Modal Dialog -->
-    <div id="approvalModal" class="modal-backdrop hidden" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; z-index: 1000;">
-      <div class="glass-card" style="width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border-color: var(--accent-amber);">
-        <div class="card-title-row">
-          <span class="card-title" style="color: var(--accent-amber);"><span>⚠️</span> Approval Required</span>
-        </div>
-        <p id="approvalPrompt" style="margin-bottom: 12px; font-size: 13.5px;"></p>
-        <pre id="approvalDetails" class="term-body" style="height: 120px; border-radius: 6px; border: 1px solid var(--border-subtle); margin-bottom: 16px;"></pre>
-        <div style="display: flex; justify-content: flex-end; gap: 10px;">
-          <button id="approvalAllowOnceBtn" class="btn-execute" style="flex: none; padding: 6px 16px;">Allow Once</button>
-          <button id="approvalAlwaysAllowBtn" class="power-btn active" style="background: rgba(255,255,255,0.1); padding: 6px 14px;">Always Allow</button>
-          <button id="approvalDenyBtn" class="btn-emergency" style="padding: 6px 14px;">Deny</button>
+        <p id="approvalPrompt" class="modal-prompt-text"></p>
+        <pre id="approvalDetails" class="code-log" style="height: 120px;"></pre>
+        <div class="modal-footer">
+          <button id="approvalAllowOnceBtn" class="btn-action-primary">Allow Once</button>
+          <button id="approvalAlwaysAllowBtn" class="btn-action-secondary">Always Allow</button>
+          <button id="approvalDenyBtn" class="btn-action-danger">Deny</button>
         </div>
       </div>
     </div>
+
+    <!-- 2. FILE EXPLORER MODAL ("Open From..." - Spec Section 9) -->
+    <div id="ideFilePickerModal" class="modal-backdrop hidden" style="display: none;">
+      <div class="modal-card file-picker-card">
+        <div class="modal-header">
+          <span class="modal-title">📁 Select Project Folder or File</span>
+          <div class="modal-header-actions">
+            <button id="btnPickNativeDialog" class="btn-action-mini" title="Open Native Windows File/Folder Dialog">🖥️ Windows Native Dialog</button>
+            <button id="btnClosePickerModal" class="btn-action-mini close">✕</button>
+          </div>
+        </div>
+
+        <div class="picker-drives-bar" id="pickerDrivesBar">
+          <span class="picker-drives-label">Drives:</span>
+        </div>
+
+        <div class="picker-nav-bar">
+          <button id="btnPickerUp" class="btn-action-mini" title="Go up one folder">⬆️ Up</button>
+          <input type="text" id="pickerPathInput" class="picker-path-input" placeholder="Current directory path..." />
+          <button id="btnPickerGo" class="btn-action-mini">Go</button>
+          <button id="btnPickerRefresh" class="btn-action-mini" title="Refresh folder listing">🔄</button>
+        </div>
+
+        <div class="picker-view-area">
+          <div id="pickerItemsList" class="picker-items-list">
+            <div class="empty-cell">Loading directory...</div>
+          </div>
+        </div>
+
+        <div class="picker-footer-bar">
+          <div class="picker-selection-info">
+            <span style="color: #94a3b8; font-size: 11px;">Selected:</span>
+            <span id="pickerSelectedItem" class="picker-selected-item-text">None</span>
+          </div>
+          <div class="picker-footer-buttons">
+            <button id="btnPickerSelectFolder" class="btn-action-primary" disabled>📂 Open Project Workspace</button>
+            <button id="btnPickerSelectFile" class="btn-action-secondary" disabled>📄 Open File</button>
+            <button id="btnPickerCancel" class="btn-action-mini">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. UPDATE AVAILABLE MODAL (Spec Section 24) -->
+    <div id="updateModal" class="modal-backdrop hidden" style="display: none;">
+      <div class="modal-card" style="width: 440px;">
+        <div class="modal-header">
+          <span class="modal-title">KritiAI Update Available</span>
+        </div>
+        <div style="padding: 12px 0;">
+          <div style="font-size: 13px; margin-bottom: 8px;"><strong>New Version:</strong> v0.2.0</div>
+          <ul style="font-size: 12px; color: #94a3b8; line-height: 1.6; padding-left: 18px;">
+            <li>Enhanced autonomous execution pipeline</li>
+            <li>New Windows native UI automation adapters</li>
+            <li>Performance optimizations and bug fixes</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button id="btnUpdateViewChanges" class="btn-action-secondary">View Changes</button>
+          <button id="btnUpdateNow" class="btn-action-primary">Update</button>
+          <button id="btnUpdateLater" class="btn-action-mini">Later</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script src="/static/app.js"></script>

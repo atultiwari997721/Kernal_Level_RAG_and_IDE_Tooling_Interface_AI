@@ -43,6 +43,8 @@ class ModelSelection(BaseModel):
     openai_api_key: Optional[str] = None
     openai_base_url: Optional[str] = None
     openai_model: str = "gpt-4o-mini"
+    chat_default_model: str = "qwen2.5:7b"
+    current_affairs_model: str = "qwen2.5:7b"
     
     # Priority weighting for automatic routing (0 - 100)
     priority_quality: int = 80

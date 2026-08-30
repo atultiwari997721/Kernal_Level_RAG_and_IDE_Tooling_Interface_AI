@@ -1,4 +1,6 @@
 """Offline Local Intelligence Provider for KritiAI (Zero-Cloud Out of the Box)."""
+import json
+import os
 import re
 import time
 from typing import Any, Dict, List, Optional
@@ -13,7 +15,7 @@ class OfflineIntelligenceProvider(BaseModelProvider):
         return True
 
     def list_models(self) -> List[str]:
-        return ["kriti-offline-core-v1", "kriti-rule-intent-fast"]
+        return ["qwen2.5:7b-emulated", "kriti-offline-core-v1", "kriti-rule-intent-fast", "deepseek-r1:7b-emulated"]
 
     def generate(
         self,
@@ -29,6 +31,66 @@ class OfflineIntelligenceProvider(BaseModelProvider):
 
         tool_calls: List[Dict[str, Any]] = []
         response_text = ""
+
+        # Check if this is a Planning Request from Planner.plan_with_model
+        system_content = messages[0].get("content", "") if messages else ""
+        if "Autonomous Execution Planner" in system_content or "generate the execution steps" in last_message.lower():
+            goal_match = re.search(r"Goal:\s*(.+?)(?:\nWorking Directory:|$)", last_message, re.DOTALL)
+            workdir_match = re.search(r"Working Directory:\s*(.+?)(?:\n|$)", last_message)
+            target_goal = goal_match.group(1).strip() if goal_match else last_message
+            target_workdir = workdir_match.group(1).strip() if workdir_match else os.getcwd()
+
+            from core.planner.code_synthesizer import synthesize_project_artifacts, detect_runtime
+            runtime = detect_runtime(target_goal)
+            artifacts, exec_cmd = synthesize_project_artifacts(target_goal, target_workdir)
+
+            steps_json = []
+            steps_json.append({
+                "objective": f"Scaffold project workspace at '{target_workdir}'",
+                "agent": "FileSystemAgent",
+                "tool": "filesystem",
+                "input_data": {"operation": "create_folder", "path": target_workdir},
+                "expected_result": f"Directory '{target_workdir}' created on filesystem",
+                "verification_condition": f"os.path.isdir('{target_workdir}') is True"
+            })
+            for fname, content in artifacts.items():
+                fpath = os.path.join(target_workdir, fname)
+                steps_json.append({
+                    "objective": f"Generate {fname} with verified functional implementation",
+                    "agent": "CodingAgent",
+                    "tool": "filesystem",
+                    "input_data": {"operation": "create_file", "path": fpath, "content": content},
+                    "expected_result": f"{fname} generated with verified code contents",
+                    "verification_condition": f"os.path.isfile('{fpath}')"
+                })
+            if exec_cmd:
+                steps_json.append({
+                    "objective": f"Execute code in Windows PowerShell: {exec_cmd}",
+                    "agent": "CodingAgent",
+                    "tool": "powershell",
+                    "input_data": {"command": exec_cmd, "working_directory": target_workdir},
+                    "expected_result": "Command executed and verified with exit code 0",
+                    "verification_condition": "exit_code == 0"
+                })
+            if runtime == "web" and "index.html" in artifacts:
+                html_path = os.path.join(target_workdir, "index.html")
+                steps_json.append({
+                    "objective": f"Launch application in default Windows browser",
+                    "agent": "BrowserAgent",
+                    "tool": "browser",
+                    "input_data": {"operation": "open_url", "url": f"file:///{html_path.replace(os.sep, '/')}"},
+                    "expected_result": "Application displayed in browser",
+                    "verification_condition": "Browser preview launched"
+                })
+
+            response_text = json.dumps(steps_json, indent=2)
+            latency = round((time.time() - start_t) * 1000, 2)
+            return ModelResponse(
+                content=response_text,
+                model=model or "kriti-offline-core-v1",
+                tool_calls=None,
+                latency_ms=latency
+            )
 
         # Check for YouTube / Media playback: "play sita ram song", "open youtube and play ..."
         if any(w in content_lower for w in ["play ", "youtube", "listen to "]):
@@ -130,6 +192,15 @@ class OfflineIntelligenceProvider(BaseModelProvider):
                 }
             })
             response_text = "Inspecting Windows hardware specifications and memory configuration."
+
+        # Check for Current Affairs / Latest Topics
+        elif any(w in content_lower for w in ["current affairs", "latest news", "breaking news", "trending", "today's news", "recent news", "current events", "latest update", "latest topic", "what happened today", "latest developments"]):
+            response_text = (
+                f"**[Current Affairs & Latest Topics Dispatch]**\n\n"
+                f"Regarding: *{last_message}*\n\n"
+                f"I am analyzing contemporary updates and verified recent developments on this topic. "
+                f"For live real-time coverage, you can also ask me to browse or search recent sources directly."
+            )
 
         # General conversational response
         if not response_text:

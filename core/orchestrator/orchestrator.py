@@ -79,7 +79,47 @@ class AIOrchestrator:
         try:
             # 2. Understand
             self.task_engine.set_state(task_id, TaskState.UNDERSTANDING)
-            intent = self.goal_engine.understand_goal(goal, context={"working_directory": str(self.config.workspace_dir)})
+            intent = self.goal_engine.understand_goal(goal, context={"working_directory": str(self.config.workspace_dir), "power_mode": active_power.value}, memory_manager=self.memory_manager)
+
+            # 2b. Handle Informational / Conversational Queries (No filesystem mutation)
+            if intent.is_informational:
+                self.task_engine.set_state(task_id, TaskState.EXECUTING)
+                prov_name, mod_name = self.model_router.route(task_type="general", power_mode=active_power.value)
+                messages = [
+                    {"role": "system", "content": "You are KritiAI, an intelligent local-first Windows execution assistant. Provide helpful, comprehensive, and clear answers."},
+                    {"role": "user", "content": goal}
+                ]
+                resp = self.model_gateway.generate(messages, provider_name=prov_name, model=mod_name)
+                answer = resp.content.strip()
+
+                self.task_engine.repo.update_task(
+                    task_id,
+                    status=TaskState.COMPLETED.value,
+                    final_result=answer,
+                    active_model=f"{prov_name}/{mod_name}",
+                    active_agent="ResearchAgent",
+                    active_tool="model_gateway"
+                )
+                self.task_engine.set_state(task_id, TaskState.COMPLETED)
+
+                if step_callback:
+                    step_callback({
+                        "event": "task_completed",
+                        "task_id": task_id,
+                        "result": answer,
+                        "is_informational": True,
+                        "active_model": f"{prov_name}/{mod_name}"
+                    })
+
+                return {
+                    "success": True,
+                    "task_id": task_id,
+                    "status": TaskState.COMPLETED.value,
+                    "final_result": answer,
+                    "is_informational": True,
+                    "active_model": f"{prov_name}/{mod_name}",
+                    "structured_task": intent.structured_task.model_dump() if intent.structured_task else None
+                }
 
             # 3. Remember
             memories = self.memory_manager.recall(goal, top_k=3)
@@ -87,12 +127,18 @@ class AIOrchestrator:
 
             # 4. Plan
             self.task_engine.set_state(task_id, TaskState.PLANNING)
-            plan = Planner.create_plan(task_id, intent)
+            plan = Planner.create_plan(
+                task_id,
+                intent,
+                model_gateway=self.model_gateway,
+                model_router=self.model_router
+            )
             self.task_engine.attach_plan(task_id, plan)
 
             # 5. Route Model & Select Agents
             provider_name, model_name = self.model_router.route(
-                task_type="coding" if intent.requires_terminal else "general"
+                task_type="coding" if intent.requires_terminal else "general",
+                power_mode=active_power.value
             )
             primary_agent = self.agent_manager.select_agent_for_goal(goal)
 
@@ -104,7 +150,13 @@ class AIOrchestrator:
             )
 
             if step_callback:
-                step_callback({"event": "plan_created", "task_id": task_id, "plan": [s.model_dump() for s in plan.steps]})
+                step_callback({
+                    "event": "plan_created",
+                    "task_id": task_id,
+                    "plan": [s.model_dump() for s in plan.steps],
+                    "plan_markdown": plan.plan_markdown,
+                    "structured_task": intent.structured_task.model_dump() if intent.structured_task else None
+                })
 
             # 6. Execute Steps
             self.task_engine.set_state(task_id, TaskState.EXECUTING)
@@ -234,7 +286,12 @@ class AIOrchestrator:
                     }
 
                 if step_callback:
-                    step_callback({"event": "step_completed", "task_id": task_id, "step": step.model_dump()})
+                    step_callback({
+                        "event": "step_completed",
+                        "task_id": task_id,
+                        "step": step.model_dump(),
+                        "output": step.output_data
+                    })
 
             # 9. Complete Task
             final_report = f"Successfully completed: '{goal}'.\n" + "\n".join(observations)
@@ -291,12 +348,20 @@ class AIOrchestrator:
         self,
         task_id: str,
         decision: str = "allow_once",
+        modified_plan_markdown: Optional[str] = None,
         step_callback: Optional[Callable[[Dict[str, Any]], None]] = None
     ) -> Dict[str, Any]:
-        """Resume task execution after user interaction with the Approval Modal."""
+        """Resume task execution after user interaction with the Approval Modal or Plan Editor."""
         task_data = self._active_tasks.get(task_id)
         if not task_data:
             return {"success": False, "task_id": task_id, "error": f"Active task data for {task_id} not found."}
+
+        # If user modified IMPLEMENTATION_PLAN.md, re-read and parse it as the new source of truth!
+        if modified_plan_markdown:
+            target_p = task_data["plan"].target_directory or task_data["intent"].target or str(self.config.workspace_dir)
+            updated_plan = Planner.parse_plan_from_markdown(modified_plan_markdown, task_id, target_p)
+            task_data["plan"] = updated_plan
+            self.task_engine.attach_plan(task_id, updated_plan)
 
         plan: ExecutionPlan = task_data["plan"]
         intent: GoalIntent = task_data["intent"]

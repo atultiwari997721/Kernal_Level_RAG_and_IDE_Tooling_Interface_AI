@@ -11,22 +11,36 @@ class OllamaProvider(BaseModelProvider):
 
     def __init__(self, endpoint: str = "http://localhost:11434"):
         self.endpoint = endpoint.rstrip("/")
+        self._cached_available: Optional[bool] = None
+        self._avail_cache_time: float = 0.0
+        self._cached_models: Optional[List[str]] = None
+        self._models_cache_time: float = 0.0
 
     def is_available(self) -> bool:
+        now = time.time()
+        if self._cached_available is not None and (now - self._avail_cache_time) < 30.0:
+            return self._cached_available
+        try:
+            with httpx.Client(timeout=1.5) as client:
+                res = client.get(f"{self.endpoint}/api/tags")
+                self._cached_available = (res.status_code == 200)
+        except Exception:
+            self._cached_available = False
+        self._avail_cache_time = now
+        return self._cached_available
+
+    def list_models(self) -> List[str]:
+        now = time.time()
+        if self._cached_models is not None and (now - self._models_cache_time) < 60.0:
+            return self._cached_models
         try:
             with httpx.Client(timeout=2.0) as client:
                 res = client.get(f"{self.endpoint}/api/tags")
-                return res.status_code == 200
-        except Exception:
-            return False
-
-    def list_models(self) -> List[str]:
-        try:
-            with httpx.Client(timeout=3.0) as client:
-                res = client.get(f"{self.endpoint}/api/tags")
                 if res.status_code == 200:
                     data = res.json()
-                    return [m["name"] for m in data.get("models", [])]
+                    self._cached_models = [m["name"] for m in data.get("models", [])]
+                    self._models_cache_time = now
+                    return self._cached_models
         except Exception:
             pass
         return []

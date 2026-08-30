@@ -90,16 +90,31 @@ class BrowserTool(BaseTool):
             browser_used = "default"
             launched_pid = None
 
-            if edge_exe:
-                proc = subprocess.Popen([edge_exe, target_url], creationflags=subprocess.DETACHED_PROCESS if os.name == "nt" else 0)
-                browser_used = "msedge"
-                launched_pid = proc.pid
-            elif chrome_exe:
-                proc = subprocess.Popen([chrome_exe, target_url], creationflags=subprocess.DETACHED_PROCESS if os.name == "nt" else 0)
-                browser_used = "chrome"
-                launched_pid = proc.pid
+            if os.name == "nt":
+                try:
+                    if target_url.startswith("file:///"):
+                        local_file = target_url.replace("file:///", "").replace("/", "\\")
+                        if os.path.exists(local_file):
+                            os.startfile(local_file)
+                        else:
+                            os.startfile(target_url)
+                    else:
+                        os.startfile(target_url)
+                    browser_used = "windows_default_browser"
+                except Exception:
+                    if edge_exe:
+                        proc = subprocess.Popen([edge_exe, target_url])
+                        browser_used = "msedge"
+                        launched_pid = proc.pid
+                    elif chrome_exe:
+                        proc = subprocess.Popen([chrome_exe, target_url])
+                        browser_used = "chrome"
+                        launched_pid = proc.pid
+                    else:
+                        webbrowser.open_new(target_url)
+                        browser_used = "webbrowser_default"
             else:
-                webbrowser.open(target_url)
+                webbrowser.open_new(target_url)
                 browser_used = "webbrowser_default"
 
             time.sleep(0.5)

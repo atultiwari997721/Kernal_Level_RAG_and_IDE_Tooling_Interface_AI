@@ -55,7 +55,8 @@ class ModelGateway:
         # 1. Check local Ollama models
         if "ollama" in self._providers and self._providers["ollama"].is_available():
             ollama_prov = self._providers["ollama"]
-            for m in ollama_prov.list_models():
+            ollama_models = ollama_prov.list_models()
+            for m in ollama_models:
                 models.append({
                     "id": f"ollama:{m}",
                     "name": m,
@@ -64,6 +65,17 @@ class ModelGateway:
                     "type": "local",
                     "is_local": True,
                     "description": "Downloaded local model running via Ollama"
+                })
+            # Ensure Qwen 7B is available for selection
+            if not any("qwen" in m.lower() for m in ollama_models):
+                models.insert(0, {
+                    "id": "ollama:qwen2.5:7b",
+                    "name": "qwen2.5:7b (Recommended Chat)",
+                    "provider": "ollama",
+                    "provider_display": "Local (Ollama)",
+                    "type": "local",
+                    "is_local": True,
+                    "description": "High-performance Qwen 7B model for chat & current affairs"
                 })
 
         # 2. Built-in Offline Intelligence models
@@ -125,4 +137,12 @@ class ModelGateway:
             else:
                 prov = self._providers.get("offline_local", OfflineIntelligenceProvider())
 
-        return prov.generate(messages=messages, model=model, tools=tools, temperature=temperature)
+        try:
+            res = prov.generate(messages=messages, model=model, tools=tools, temperature=temperature)
+            if not res.content and provider_name != "offline_local" and "offline_local" in self._providers:
+                return self._providers["offline_local"].generate(messages=messages, model=model, tools=tools, temperature=temperature)
+            return res
+        except Exception:
+            if provider_name != "offline_local" and "offline_local" in self._providers:
+                return self._providers["offline_local"].generate(messages=messages, model=model, tools=tools, temperature=temperature)
+            raise

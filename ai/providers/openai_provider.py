@@ -18,6 +18,8 @@ class OpenAICompatibleProvider(BaseModelProvider):
         self.api_key = api_key or ""
         self.base_url = (base_url or "https://api.openai.com/v1").rstrip("/")
         self.default_model = default_model
+        self._cached_models: Optional[List[str]] = None
+        self._models_cache_time: float = 0.0
 
     def is_available(self) -> bool:
         return bool(self.api_key or "localhost" in self.base_url or "127.0.0.1" in self.base_url)
@@ -25,16 +27,23 @@ class OpenAICompatibleProvider(BaseModelProvider):
     def list_models(self) -> List[str]:
         if not self.is_available():
             return []
+        now = time.time()
+        if self._cached_models is not None and (now - self._models_cache_time) < 60.0:
+            return self._cached_models
         try:
             headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
-            with httpx.Client(timeout=4.0) as client:
+            with httpx.Client(timeout=2.0) as client:
                 res = client.get(f"{self.base_url}/models", headers=headers)
                 if res.status_code == 200:
                     data = res.json()
-                    return [m["id"] for m in data.get("data", [])]
+                    self._cached_models = [m["id"] for m in data.get("data", [])]
+                    self._models_cache_time = now
+                    return self._cached_models
         except Exception:
             pass
-        return [self.default_model]
+        self._cached_models = [self.default_model]
+        self._models_cache_time = now
+        return self._cached_models
 
     def generate(
         self,

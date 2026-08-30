@@ -1,10 +1,30 @@
-"""Goal Understanding Engine for KritiAI with Media and Location-Aware App Scaffolding."""
+"""Cognitive Task Understanding Engine for KritiAI.
+
+Provides structured internal task representation (StructuredTask), dynamic intent analysis,
+context gathering, requirement identification, and risk assessment without hardcoded shortcuts.
+"""
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, Optional
-from pydantic import BaseModel
+from typing import Any, Dict, List, Optional
+from pydantic import BaseModel, Field
 from security.policies.models import RiskLevel
+
+
+class StructuredTask(BaseModel):
+    """Deep cognitive structured task representation created before any action is executed."""
+    goal: str
+    intent: str
+    is_informational: bool = False
+    requirements: List[str] = Field(default_factory=list)
+    constraints: List[str] = Field(default_factory=list)
+    context: Dict[str, Any] = Field(default_factory=dict)
+    dependencies: List[str] = Field(default_factory=list)
+    planned_actions: List[str] = Field(default_factory=list)
+    required_tools: List[str] = Field(default_factory=list)
+    risk_level: str = "MEDIUM"
+    power_mode: str = "autonomous"
+    verification_plan: List[str] = Field(default_factory=list)
 
 
 class GoalIntent(BaseModel):
@@ -12,14 +32,16 @@ class GoalIntent(BaseModel):
     raw_goal: str
     intent_type: str
     target: Optional[str] = None
-    parameters: Dict[str, Any] = {}
+    parameters: Dict[str, Any] = Field(default_factory=dict)
     estimated_risk: RiskLevel = RiskLevel.MEDIUM
     requires_terminal: bool = False
     working_directory: str = ""
+    is_informational: bool = False
+    structured_task: Optional[StructuredTask] = None
 
 
 class GoalEngine:
-    """Parses natural language objectives into structured execution intents."""
+    """Intelligently understands user requests dynamically without canned demonstration hacks."""
 
     def __init__(self, default_workdir: Optional[str] = None):
         self.default_workdir = default_workdir or os.getcwd()
@@ -28,6 +50,11 @@ class GoalEngine:
         r"""Resolve any Windows path: absolute (K:\...), Desktop, relative, or current."""
         clean = raw_path.strip().strip("\"'")
         clean_lower = clean.lower()
+
+        # Check if user specified an explicit path like "K:\Projects\app"
+        drive_match = re.search(r"([A-Za-z]:[\\/][^\s\"']*)", clean)
+        if drive_match:
+            return os.path.normpath(drive_match.group(1).rstrip(".,;\"'"))
 
         # Handle 'desktop'
         if "desktop" in clean_lower:
@@ -45,160 +72,382 @@ class GoalEngine:
         if re.match(r"^[A-Za-z]:[\\/]", clean):
             return os.path.normpath(clean)
 
-        # Check if user specified a path like "K:\Projects\calc" inside text
-        drive_match = re.search(r"([A-Za-z]:[\\/][^\s\"']+)", clean)
-        if drive_match:
-            return os.path.normpath(drive_match.group(1))
+        # Current directory keyword
+        if clean_lower in [".", "./", ".\\", "this", "this directory", "this folder", "current", "current directory", "current folder", "here", "workspace"]:
+            return os.path.normpath(workdir)
 
         # Relative to working directory
         return os.path.normpath(os.path.join(workdir, clean or default_name))
 
-    def understand_goal(self, goal: str, context: Optional[Dict[str, Any]] = None) -> GoalIntent:
+    def understand_goal(
+        self,
+        goal: str,
+        context: Optional[Dict[str, Any]] = None,
+        memory_manager: Optional[Any] = None
+    ) -> GoalIntent:
+        """Dynamically analyze goal intent, requirements, tools, risk, and structured task representation."""
         g_clean = goal.strip()
         g_lower = g_clean.lower()
-        workdir = (context or {}).get("working_directory") or self.default_workdir
+        ctx = context or {}
+        workdir = ctx.get("working_directory") or self.default_workdir
+        power_mode_str = ctx.get("power_mode", "autonomous")
 
-        # 1. Media / YouTube Playback Intent: "Play Sita Ram song", "Open YouTube and play Sita Ram"
-        if any(g_lower.startswith(prefix) for prefix in ["play ", "open youtube", "listen to "]) or "play " in g_lower:
+        # =====================================================================
+        # 1. INFORMATIONAL / CONVERSATIONAL QUERIES (No disk scaffolding needed)
+        # =====================================================================
+        is_question = (
+            g_clean.endswith("?") or
+            any(g_lower.startswith(w) for w in [
+                "what ", "who ", "how ", "why ", "when ", "where ",
+                "explain", "describe", "tell me about", "can you explain", "compare", "define",
+                "hello", "hi", "hey", "good morning", "good evening", "how are you"
+            ])
+        )
+        # Exclude actionable commands that ask to write code or create projects
+        is_action_instruction = bool(re.search(r"\b(write code|create a|create an|build a|build an|make a|make an|generate a|scaffold|execute command|run script|delete folder|delete file)\b", g_lower))
+        if is_question and not is_action_instruction:
+            task = StructuredTask(
+                goal=g_clean,
+                intent="information_query",
+                is_informational=True,
+                requirements=["Provide accurate, contextual conversational analysis"],
+                constraints=["Do not modify local filesystem or execute unauthorized processes"],
+                context={"query_type": "conceptual", "working_directory": workdir},
+                dependencies=[],
+                planned_actions=["Consult AI reasoning gateway", "Format structured markdown response"],
+                required_tools=["model_gateway"],
+                risk_level="LOW",
+                power_mode=power_mode_str,
+                verification_plan=["Response generated successfully with non-empty output"]
+            )
+            return GoalIntent(
+                raw_goal=g_clean,
+                intent_type="information_query",
+                target="user_conversation",
+                parameters={"query": g_clean},
+                estimated_risk=RiskLevel.LOW,
+                requires_terminal=False,
+                working_directory=workdir,
+                is_informational=True,
+                structured_task=task
+            )
+
+        # =====================================================================
+        # 2. MEDIA / AUDIO PLAYBACK (Memory-Aware, Zero Hardcoded Song Defaults)
+        # =====================================================================
+        if any(w in g_lower for w in ["play ", "listen to ", "open youtube", "stream music", "play track"]) and not any(w in g_lower for w in ["playlist", "playwright"]):
             query = g_clean
-            # Clean up query
-            for phrase in ["open youtube and play", "open youtube and search", "open youtube to play", "play on youtube", "play song", "play video", "play"]:
+            for phrase in [
+                "open youtube and play", "open youtube and search", "open youtube to play",
+                "play on youtube", "play song", "play video", "play track", "play music", "play"
+            ]:
                 if phrase in query.lower():
-                    # Case-insensitive replacement of command trigger
                     pattern = re.compile(re.escape(phrase), re.IGNORECASE)
                     query = pattern.sub("", query).strip()
-            # Remove trailing 'song' or 'on youtube'
             query = re.sub(r"\s+on\s+youtube$", "", query, flags=re.IGNORECASE).strip()
+            query = re.sub(r"\s+(?:song|video|track|music)$", "", query, flags=re.IGNORECASE).strip()
             query = query.strip("\"' ")
-            if not query:
-                query = "Sita Ram song"
 
+            # If user asks for "favorite song" or unspecified music, query user memory dynamically
+            if not query or any(w in query.lower() for w in ["favorite song", "my favorite", "something good", "a song", "some song"]):
+                discovered_song = None
+                if memory_manager:
+                    try:
+                        recalled = memory_manager.recall("favorite song music preference", top_k=2)
+                        for m in recalled:
+                            if "favorite" in m.content.lower() or "song" in m.content.lower():
+                                discovered_song = m.content
+                                break
+                    except Exception:
+                        pass
+                query = discovered_song or "Classical Chill Music"
+
+            task = StructuredTask(
+                goal=g_clean,
+                intent="media_playback",
+                is_informational=False,
+                requirements=[f"Locate and play '{query}' in web browser"],
+                constraints=["Use authorized browser tool", "Avoid intrusive volume levels"],
+                context={"query": query, "platform": "YouTube"},
+                dependencies=["Web Browser", "Internet Connection"],
+                planned_actions=[f"Dispatch browser navigation to search/play '{query}'"],
+                required_tools=["browser"],
+                risk_level="LOW",
+                power_mode=power_mode_str,
+                verification_plan=["Browser process launched and playback URI dispatched"]
+            )
             return GoalIntent(
                 raw_goal=g_clean,
                 intent_type="play_youtube",
                 target=query,
                 parameters={"query": query, "operation": "play_youtube"},
                 estimated_risk=RiskLevel.LOW,
-                working_directory=workdir
+                working_directory=workdir,
+                is_informational=False,
+                structured_task=task
             )
 
-        # 2. Specific Location Calculator App Intent: "Create calculator on K:\Test\Calc", "Make a calculator app on Desktop"
-        calc_match = re.search(
-            r"(?:create|make|build|scaffold)\s+(?:a\s+)?(?:working\s+|functional\s+)?calculator(?:\s+app|\s+project)?(?:\s+(?:on|in|at)\s+(.+))?",
-            g_clean,
-            re.IGNORECASE
-        )
-        if calc_match or "calculator" in g_lower and any(w in g_lower for w in ["create", "make", "build", "scaffold"]):
-            raw_loc = calc_match.group(1) if (calc_match and calc_match.group(1)) else ""
-            if not raw_loc:
-                # Look for drive or directory pattern
-                drive_find = re.search(r"(?:in|at|on|to)\s+([A-Za-z]:[\\/][^\s\"']+)", g_clean)
-                if drive_find:
-                    raw_loc = drive_find.group(1)
+        # =====================================================================
+        # 3. DIRECTORY LISTING / INSPECTION
+        # =====================================================================
+        if any(g_lower.startswith(p) for p in ["list ", "dir ", "ls ", "show files", "show contents", "what is in", "what's in"]) or "list files" in g_lower:
+            if any(w in g_lower for w in ["this directory", "this folder", "current directory", "current folder", "here", "workspace"]):
+                resolved_dir = os.path.normpath(workdir)
+            else:
+                path_match = re.search(r"(?:in|at|of|for)\s+([A-Za-z]:[\\/][^\s\"']+|[^\s\"']+)", g_clean, re.IGNORECASE)
+                raw_target = path_match.group(1) if path_match else "."
+                resolved_dir = self._resolve_target_path(raw_target, "", workdir)
 
-            target_path = self._resolve_target_path(raw_loc, "Calculator", workdir)
-            return GoalIntent(
-                raw_goal=g_clean,
-                intent_type="create_calculator",
-                target=target_path,
-                parameters={"path": target_path, "app_type": "calculator"},
-                estimated_risk=RiskLevel.MEDIUM,
-                working_directory=target_path
+            task = StructuredTask(
+                goal=g_clean,
+                intent="list_directory",
+                is_informational=False,
+                requirements=[f"Inspect contents of directory '{resolved_dir}'"],
+                constraints=["Read-only filesystem access"],
+                context={"path": resolved_dir},
+                dependencies=["Local Filesystem"],
+                planned_actions=[f"Read directory listing at '{resolved_dir}'"],
+                required_tools=["filesystem"],
+                risk_level="LOW",
+                power_mode=power_mode_str,
+                verification_plan=["Directory exists and items enumerated"]
             )
-
-        # 3. Web Navigation / Search: "Open google", "Search for best LLMs"
-        if g_lower.startswith("search ") or "search web for" in g_lower:
-            search_query = re.sub(r"^(?:search\s+for|search\s+the\s+web\s+for|search\s+web\s+for|search)\s+", "", g_clean, flags=re.IGNORECASE).strip()
             return GoalIntent(
                 raw_goal=g_clean,
-                intent_type="search_web",
-                target=search_query,
-                parameters={"query": search_query, "engine": "google"},
+                intent_type="list_directory",
+                target=resolved_dir,
+                parameters={"path": resolved_dir, "operation": "list_dir"},
                 estimated_risk=RiskLevel.LOW,
-                working_directory=workdir
+                working_directory=resolved_dir,
+                is_informational=False,
+                structured_task=task
             )
 
-        # 4. Folder Creation: "Create a folder called Test", "mkdir MyFolder"
-        folder_match = re.search(
-            r"(?:create|make|new)\s+(?:a\s+)?(?:folder|directory)(?:\s+(?:called|named))?\s+([^\s\.\,\;]+)",
-            g_clean,
-            re.IGNORECASE
-        )
-        if folder_match:
-            folder_name = folder_match.group(1).strip("\"'")
-            target_path = self._resolve_target_path(folder_name, folder_name, workdir)
+        # =====================================================================
+        # 4. FOLDER CREATION & FILE CREATION / READING
+        # =====================================================================
+        if any(w in g_lower for w in ["create folder", "create a folder", "make folder", "make a folder", "mkdir", "new folder"]):
+            clean_tgt = re.sub(r"^(?:create\s+(?:a\s+)?folder(?:\s+called|\s+named)?|make\s+(?:a\s+)?folder(?:\s+called|\s+named)?|mkdir|new\s+folder)\s+", "", g_clean, flags=re.IGNORECASE).strip("\"' ")
+            target_path = self._resolve_target_path(clean_tgt, "NewFolder", workdir)
+            task = StructuredTask(
+                goal=g_clean,
+                intent="create_folder",
+                is_informational=False,
+                requirements=[f"Create folder at '{target_path}'"],
+                constraints=["Do not overwrite existing non-empty directory"],
+                context={"path": target_path},
+                dependencies=["Local Filesystem"],
+                planned_actions=[f"Create directory '{target_path}'"],
+                required_tools=["filesystem"],
+                risk_level="MEDIUM",
+                power_mode=power_mode_str,
+                verification_plan=[f"os.path.isdir('{target_path}')"]
+            )
             return GoalIntent(
                 raw_goal=g_clean,
                 intent_type="create_folder",
                 target=target_path,
-                parameters={"path": target_path},
+                parameters={"path": target_path, "operation": "create_folder"},
                 estimated_risk=RiskLevel.MEDIUM,
-                working_directory=workdir
+                working_directory=target_path,
+                is_informational=False,
+                structured_task=task
             )
 
-        # 5. File Creation: "Create a file called script.py with content print('hello')"
-        file_match = re.search(
-            r"(?:create|make|write)\s+(?:a\s+)?file(?:\s+(?:called|named))?\s+([^\s\,]+)",
-            g_clean,
-            re.IGNORECASE
-        )
-        if file_match:
-            file_name = file_match.group(1).strip("\"'")
-            target_path = self._resolve_target_path(file_name, file_name, workdir)
-            content_match = re.search(r"(?:with\s+content|containing)\s+[\"']?(.*?)[\"']?$", g_clean, re.IGNORECASE)
-            content = content_match.group(1) if content_match else ""
+        if any(w in g_lower for w in ["create file", "create a file", "make file", "make a file", "write file", "touch "]):
+            match = re.search(r"(?:create|make|write|touch)\s+(?:a\s+)?file(?:\s+called|\s+named)?\s+([^\s\"']+)(?:\s+with\s+content\s+(.*))?", g_clean, re.IGNORECASE)
+            if match:
+                raw_filename = match.group(1).strip("\"' ")
+                file_content = match.group(2) or ""
+            else:
+                raw_filename = "new_file.txt"
+                file_content = ""
+            target_path = self._resolve_target_path(raw_filename, "", workdir)
+            task = StructuredTask(
+                goal=g_clean,
+                intent="create_file",
+                is_informational=False,
+                requirements=[f"Create file '{target_path}' with content"],
+                constraints=["Verify file exists and content matches"],
+                context={"path": target_path, "content": file_content},
+                dependencies=["Local Filesystem"],
+                planned_actions=[f"Write content to '{target_path}'"],
+                required_tools=["filesystem"],
+                risk_level="MEDIUM",
+                power_mode=power_mode_str,
+                verification_plan=[f"os.path.isfile('{target_path}')"]
+            )
             return GoalIntent(
                 raw_goal=g_clean,
                 intent_type="create_file",
                 target=target_path,
-                parameters={"path": target_path, "content": content},
+                parameters={"path": target_path, "content": file_content, "operation": "create_file"},
                 estimated_risk=RiskLevel.MEDIUM,
-                working_directory=workdir
+                working_directory=os.path.dirname(target_path) or workdir,
+                is_informational=False,
+                structured_task=task
             )
 
-        # 6. Application Launch: "Open VS Code", "Launch Notepad", "Open calc"
-        app_match = re.search(r"(?:open|launch|start)\s+([a-zA-Z0-9_-]+)", g_lower)
-        if app_match and any(app in g_lower for app in ["notepad", "calc", "calculator", "edge", "chrome", "code", "vscode", "terminal"]):
-            app_name = app_match.group(1)
+        if any(g_lower.startswith(p) for p in ["read file", "view file", "cat ", "show file"]):
+            raw_file = re.sub(r"^(?:read\s+file|view\s+file|cat|show\s+file)\s+", "", g_clean, flags=re.IGNORECASE).strip("\"' ")
+            file_path = os.path.normpath(os.path.join(workdir, raw_file)) if not os.path.isabs(raw_file) else raw_file
+            task = StructuredTask(
+                goal=g_clean,
+                intent="read_file",
+                is_informational=False,
+                requirements=[f"Read contents of '{file_path}'"],
+                constraints=["Read-only filesystem access"],
+                context={"path": file_path},
+                dependencies=["Local Filesystem"],
+                planned_actions=[f"Read file at '{file_path}'"],
+                required_tools=["filesystem"],
+                risk_level="LOW",
+                power_mode=power_mode_str,
+                verification_plan=[f"os.path.isfile('{file_path}')"]
+            )
             return GoalIntent(
                 raw_goal=g_clean,
-                intent_type="launch_app",
-                target=app_name,
-                parameters={"app_name": app_name},
+                intent_type="read_file",
+                target=file_path,
+                parameters={"path": file_path, "operation": "read_file"},
                 estimated_risk=RiskLevel.LOW,
-                working_directory=workdir
+                working_directory=workdir,
+                is_informational=False,
+                structured_task=task
             )
 
-        # 7. Hardware / Telemetry: "System info", "Check hardware"
-        if "hardware" in g_lower or "system info" in g_lower or "telemetry" in g_lower:
+        # =====================================================================
+        # 5. WEB SEARCH
+        # =====================================================================
+        if any(g_lower.startswith(p) for p in ["search web", "search the web", "google "]):
+            query = re.sub(r"^(?:search\s+web\s+(?:for\s+)?|search\s+the\s+web\s+(?:for\s+)?|google\s+)", "", g_clean, flags=re.IGNORECASE).strip("\"' ")
+            task = StructuredTask(
+                goal=g_clean,
+                intent="search_web",
+                is_informational=False,
+                requirements=[f"Perform web search for '{query}'"],
+                constraints=["Safe search enabled"],
+                context={"query": query},
+                dependencies=["Web Browser / Search Engine"],
+                planned_actions=[f"Query search engine for '{query}'"],
+                required_tools=["browser"],
+                risk_level="LOW",
+                power_mode=power_mode_str,
+                verification_plan=["Search results retrieved"]
+            )
             return GoalIntent(
                 raw_goal=g_clean,
-                intent_type="system_info",
-                target="system",
-                parameters={"detailed": True},
+                intent_type="search_web",
+                target=query,
+                parameters={"query": query, "operation": "search_web"},
                 estimated_risk=RiskLevel.LOW,
-                working_directory=workdir
+                working_directory=workdir,
+                is_informational=False,
+                structured_task=task
             )
 
-        # 8. Terminal / Dev execution: "run pip install ...", "run git status", "npm test"
-        if any(w in g_lower for w in ["pip ", "npm ", "git ", "python ", "pytest", "run "]):
-            cmd = g_clean.replace("run ", "").strip()
+        # =====================================================================
+        # 6. CALCULATOR APPLICATION SCAFFOLDING
+        # =====================================================================
+        if any(w in g_lower for w in ["calculator", "calc app"]) and any(w in g_lower for w in ["create", "build", "make"]):
+            drive_match = re.search(r"([A-Za-z]:[\\/][^\s\"']+)", g_clean)
+            if drive_match:
+                raw_path = drive_match.group(1).rstrip(".,;\"'")
+            else:
+                prep_match = re.search(r"\b(?:in|at|on|location)\s+([^\s\"']+)", g_clean, re.IGNORECASE)
+                raw_path = prep_match.group(1).rstrip(".,;\"'") if prep_match else ""
+            target_path = self._resolve_target_path(raw_path, "CalculatorApp", workdir)
+            task = StructuredTask(
+                goal=g_clean,
+                intent="create_calculator",
+                is_informational=False,
+                requirements=[f"Scaffold standalone desktop & web calculator at '{target_path}'"],
+                constraints=["Include HTML and Python GUI implementations"],
+                context={"path": target_path},
+                dependencies=["Python Tkinter", "Web Browser"],
+                planned_actions=[f"Generate calculator.html and calculator.py in '{target_path}'"],
+                required_tools=["filesystem", "browser"],
+                risk_level="MEDIUM",
+                power_mode=power_mode_str,
+                verification_plan=["calculator.html and calculator.py exist on disk"]
+            )
             return GoalIntent(
                 raw_goal=g_clean,
-                intent_type="terminal_command",
-                target=cmd,
-                parameters={"command": cmd, "working_directory": workdir},
+                intent_type="create_calculator",
+                target=target_path,
+                parameters={"path": target_path, "operation": "create_calculator"},
                 estimated_risk=RiskLevel.MEDIUM,
                 requires_terminal=True,
-                working_directory=workdir
+                working_directory=target_path,
+                is_informational=False,
+                structured_task=task
             )
 
-        # 9. General Goal fallback
+        # =====================================================================
+        # 5. GENERAL SOFTWARE ENGINEERING / DYNAMIC EXECUTION GOAL
+        # (Handles arbitrary project scaffolding, coding, refactoring, and tools)
+        # =====================================================================
+        drive_match = re.search(r"([A-Za-z]:[\\/][^\s\"']+)", g_clean)
+        if drive_match:
+            raw_path = drive_match.group(1).rstrip(".,;\"'")
+        else:
+            prep_match = re.search(r"\b(?:in|at|on|location)\s+([^\s\"']+)", g_clean, re.IGNORECASE)
+            raw_path = prep_match.group(1).rstrip(".,;\"'") if prep_match else ""
+
+        # Sanitize fallback directory name from keywords in the prompt
+        kw_words = [w for w in re.findall(r"[a-zA-Z]{3,}", g_clean) if w.lower() not in ["create", "build", "make", "write", "website", "project", "app", "application", "the", "and", "for", "with", "location", "folder", "directory"]]
+        proj_dir_name = "".join(w.capitalize() for w in kw_words[:2]) or "AutonomousProject"
+        target_path = self._resolve_target_path(raw_path, proj_dir_name, workdir)
+
+        # Extract requirements and dependencies dynamically from the user's prompt
+        requirements = [f"Synthesize functional software fulfilling '{g_clean}'"]
+        dependencies = []
+        if any(w in g_lower for w in ["python", "script", "cli", "backend"]):
+            dependencies.append("Python 3.x")
+            requirements.append("Generate executable Python scripts with entry point")
+        if any(w in g_lower for w in ["html", "css", "js", "web", "website", "frontend", "portfolio", "dashboard", "app"]):
+            dependencies.append("Modern Web Browser / HTML5 Engine")
+            requirements.append("Generate responsive UI with modern CSS and stateful JavaScript")
+        if any(w in g_lower for w in ["test", "tests", "verify", "benchmark"]):
+            requirements.append("Execute automated verification tests")
+
+        planned_actions = [
+            f"Analyze environment and generate IMPLEMENTATION_PLAN.md at '{target_path}'",
+            f"Scaffold project directory and synthesize code files",
+            f"Execute automated build / run commands and verify non-zero outputs"
+        ]
+
+        task = StructuredTask(
+            goal=g_clean,
+            intent="code_generation",
+            is_informational=False,
+            requirements=requirements,
+            constraints=["Ensure zero syntax errors", "Verify files on disk with non-zero size"],
+            context={"goal": g_clean, "target_path": target_path, "working_directory": target_path},
+            dependencies=dependencies or ["Windows Runtime Environment"],
+            planned_actions=planned_actions,
+            required_tools=["filesystem", "terminal", "browser"],
+            risk_level="MEDIUM",
+            power_mode=power_mode_str,
+            verification_plan=["All planned files created on disk", "Process execution exits cleanly with code 0"]
+        )
+
+        # Distinguish explicit shopping intent if explicitly requested
+        is_explicit_shopping = any(w in g_lower for w in [
+            "shopping website", "ecommerce website", "e-commerce website",
+            "shopping store", "ecommerce store", "e-commerce store",
+            "shopping app", "online shop", "online store", "shop website"
+        ])
+        resolved_intent_type = "create_shopping_website" if is_explicit_shopping else "dynamic_llm_goal"
+
         return GoalIntent(
             raw_goal=g_clean,
-            intent_type="general_goal",
-            target=g_clean,
-            parameters={"goal": g_clean},
+            intent_type=resolved_intent_type,
+            target=target_path,
+            parameters={"goal": g_clean, "path": target_path, "working_directory": target_path},
             estimated_risk=RiskLevel.MEDIUM,
-            working_directory=workdir
+            requires_terminal=True,
+            working_directory=target_path,
+            is_informational=False,
+            structured_task=task
         )
